@@ -1,3 +1,6 @@
+import itertools
+import networkx as nx
+
 tokens = (
     'LBRACKET',
     'RBRACKET',
@@ -77,6 +80,7 @@ class AtomicFact(object):
     """ maybe useful, maybe not. """
     pass
 
+
 class ClassIs(AtomicFact):
     def __init__(self, designation, class_name):
         self.designation = designation
@@ -91,10 +95,11 @@ class EdgeExists(AtomicFact):
 
 
 class AttributeHasValue(AtomicFact):
-    def __init__(self, node, attribute, value):
-        self.node = node
+    def __init__(self, designation, attribute, value):
+        self.designation = designation
         self.attribute = attribute
         self.value = value
+
 
 class Node(object):
     '''A node specification -- a set of conditions and a designation.'''
@@ -110,6 +115,7 @@ class AttributeConditionList(object):
     def __init__(self, attribute_list=None):
         global atomic_facts
         self.attribute_list = attribute_list or {}
+
 
 def p_node_clause(p):
     '''node_clause : LPAREN NAME COLON RPAREN
@@ -130,7 +136,7 @@ def p_node_clause(p):
         p[0] = Node(node_class=p[2], designation=p[4],
                     attribute_conditions=p[5])
     # Record the atomic facts
-    atomic_facts.append(ClassIs(p[0].node_class, p[0].designation)) 
+    atomic_facts.append(ClassIs(p[0].designation, p[0].node_class)) 
     for attribute, value in p[0].attribute_conditions.iteritems():
         atomic_facts.append(AttributeHasValue(p[0].designation, attribute, value))
 
@@ -169,13 +175,12 @@ def p_condition(p):
                       | LCURLEY condition_list RCURLEY'''
     global atomic_facts
     if len(p) == 4 and p[2] == ':':
-        p[0] = {p[1]: p[3]}
+        p[0] = {p[1]: p[3].replace('"', '')}
     elif len(p) == 4 and p[2] == ',':
         p[0] = p[1]
         p[1].update(p[3])
     elif len(p) == 4 and isinstance(p[2], dict):
         p[0] = p[2]
-
 
 
 class Literals(object):
@@ -231,7 +236,7 @@ def p_return_variables(p):
         p[0] = p[1]
 
 
-sample = 'MATCH (IMACLASS:x {bar : "baz", foo:"goo"})-->(IMALSOACLASS:), (LAST:y) RETURN x, y'
+sample = 'MATCH (SOMECLASS:x {bar : "baz", foo:"goo"})-->(ANOTHERCLASS:), (LASTCLASS:y) RETURN x, y'
 # sample = '(IMACLASS:x {bar:"baz"})'
 # sample = '(IMACLASS:x)'
 lexer.input(sample)
@@ -242,3 +247,44 @@ while tok:
 
 parser = yacc.yacc()
 result = parser.parse(sample)
+
+
+# Now we make a little graph for testing
+g = nx.Graph()
+g.add_node('node_1', {'class': 'SOMECLASS', 'foo': 'goo', 'bar': 'baz'})
+g.add_node('node_2', {'class': 'ANOTHERCLASS', 'foo': 'not_bar'})
+g.add_node('node_3', {'class': 'LASTCLASS', 'foo': 'goo', 'bar': 'notbaz'})
+g.add_node('node_4', {'class': 'SOMECLASS', 'foo': 'not goo', 'bar': 'baz'})
+
+g.add_edge('node_1', 'node_2')
+g.add_edge('node_2', 'node_3')
+g.add_edge('node_4', 'node_2')
+
+# Let's enumerate the possible assignments
+all_designations = set()
+for fact in atomic_facts:
+    if hasattr(fact, 'designation') and fact.designation is not None:
+        all_designations.add(fact.designation)
+all_designations = sorted(list(all_designations))
+
+domain = g.nodes()
+for domain_assignment in itertools.product(*[domain] * len(all_designations)):
+    var_to_element = {all_designations[index]: element for index, element
+                      in enumerate(domain_assignment)}
+    element_to_var = {v: k for k, v in var_to_element.iteritems()}
+    sentinal = True
+    for atomic_fact in atomic_facts:
+        if isinstance(atomic_fact, ClassIs):
+            var_class = g.node[var_to_element[atomic_fact.designation]].get('class', None)
+            var = atomic_fact.designation
+            desired_class = atomic_fact.class_name
+            if var_class != desired_class:
+                sentinal = False
+        if isinstance(atomic_fact, AttributeHasValue):
+            attribute = atomic_fact.attribute
+            desired_value = atomic_fact.value
+            value = g.node[var_to_element[atomic_fact.designation]].get(attribute, None)
+            if value != desired_value:
+                sentinal = False
+    if sentinal:
+        print var_to_element
