@@ -68,6 +68,33 @@ lexer = lex.lex()
 
 import ply.yacc as yacc
 
+atomic_facts = []
+next_anonymous_variable = 0
+
+start = 'match_return'
+
+class AtomicFact(object):
+    """ maybe useful, maybe not. """
+    pass
+
+class ClassIs(AtomicFact):
+    def __init__(self, designation, class_name):
+        self.designation = designation
+        self.class_name = class_name
+
+
+class EdgeExists(AtomicFact):
+    def __init__(self, node_1, node_2, direction=None, edge_label=None):
+        self.node_1 = node_1
+        self.node_2 = node_2
+        self.direction = direction
+
+
+class AttributeHasValue(AtomicFact):
+    def __init__(self, node, attribute, value):
+        self.node = node
+        self.attribute = attribute
+        self.value = value
 
 class Node(object):
     '''A node specification -- a set of conditions and a designation.'''
@@ -75,34 +102,37 @@ class Node(object):
                  attribute_conditions=None):
         self.node_class = node_class
         self.designation = designation
-        self.attribute_conditions = attribute_conditions
+        self.attribute_conditions = attribute_conditions or {}
 
 
 class AttributeConditionList(object):
-    '''A bunch of AttributeCondition objects in a list'''
+    '''A bunch of AttributeHasValue objects in a list'''
     def __init__(self, attribute_list=None):
-        self.attribute_list = attribute_list or []
-
-start = 'match_return'
-
-parameters = {}
-
+        global atomic_facts
+        self.attribute_list = attribute_list or {}
 
 def p_node_clause(p):
     '''node_clause : LPAREN NAME COLON RPAREN
                    | LPAREN NAME COLON KEY RPAREN
                    | LPAREN NAME COLON KEY condition_list RPAREN'''
-    if len(p) == 4:
-        p[0] = Node(node_condition=AttributeConditionList(), designation=p[2])
-    elif len(p) == 5:
+    global next_anonymous_variable
+    global atomic_facts
+    if len(p) == 5:
         # Just a class name
-        p[0] = Node(node_class=p[2])
+        p[0] = Node(node_class=p[2],
+                    designation='_v' + str(next_anonymous_variable),
+                    attribute_conditions={})
+        next_anonymous_variable += 1
     elif len(p) == 6:
         # Node class name and variable
-        p[0] = Node(node_class=p[2], designation=p[4])
+        p[0] = Node(node_class=p[2], designation=p[4], attribute_conditions={})
     elif len(p) == 7:
         p[0] = Node(node_class=p[2], designation=p[4],
                     attribute_conditions=p[5])
+    # Record the atomic facts
+    atomic_facts.append(ClassIs(p[0].node_class, p[0].designation)) 
+    for attribute, value in p[0].attribute_conditions.iteritems():
+        atomic_facts.append(AttributeHasValue(p[0].designation, attribute, value))
 
 
 class Relationship(object):
@@ -112,14 +142,15 @@ class Relationship(object):
         self.right_node = node_2
         self.relationship_type = relationship_type
         self.min_depth = min_depth
-
         self.arrow_direction = arrow_direction
 
 
 def p_relationship(p):
     '''relationship : node_clause RIGHT_ARROW node_clause'''
+    global atomic_facts
     if p[2] == t_RIGHT_ARROW:
         p[0] = Relationship(p[1], p[3], arrow_direction='left_right')
+        EdgeExists(p[0].designation, p[2].designation, direction='left_right')
     else:
         print 'unhandled case?'
 
@@ -136,13 +167,15 @@ def p_condition(p):
     '''condition_list : KEY COLON STRING
                       | condition_list COMMA condition_list
                       | LCURLEY condition_list RCURLEY'''
+    global atomic_facts
     if len(p) == 4 and p[2] == ':':
-        p[0] = AttributeConditionList(attribute_list=[{p[1]: p[3]}])
+        p[0] = {p[1]: p[3]}
     elif len(p) == 4 and p[2] == ',':
         p[0] = p[1]
-        p[1].attribute_list += p[3].attribute_list
-    elif len(p) == 4 and isinstance(p[2], AttributeConditionList):
+        p[1].update(p[3])
+    elif len(p) == 4 and isinstance(p[2], dict):
         p[0] = p[2]
+
 
 
 class Literals(object):
