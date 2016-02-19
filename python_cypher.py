@@ -5,6 +5,8 @@ tokens = (
     'RPAREN',
     'COLON',
     'RIGHT_ARROW',
+    'MATCH',
+    'RETURN',
     'NAME',
     'WHITESPACE',
     'LCURLEY',
@@ -13,9 +15,8 @@ tokens = (
     'QUOTE',
     'INTEGER',
     'STRING',
-    'KEY',
-    'MATCH',
-    'RETURN',)
+    'KEY',)
+
 
 t_LBRACKET = r'\['
 t_RBRACKET = r'\]'
@@ -29,14 +30,23 @@ t_LCURLEY = r'{'
 t_RCURLEY = r'}'
 t_COMMA = r','
 t_STRING = r'"[A-Za-z0-9]+"'
-t_MATCH = r'MATCH'
-t_RETURN = r'RETURN'
+
 
 t_ignore = r' '
 
 
 def t_error(t):
     print 'error'
+
+
+def t_MATCH(t):
+    r'MATCH'
+    return t
+
+
+def t_RETURN(t):
+    r'RETURN'
+    return t
 
 
 def t_NAME(t):
@@ -73,7 +83,7 @@ class AttributeConditionList(object):
     def __init__(self, attribute_list=None):
         self.attribute_list = attribute_list or []
 
-start = 'literals'
+start = 'match_return'
 
 parameters = {}
 
@@ -149,7 +159,6 @@ def p_literals(p):
     elif len(p) == 4 and p[2] == t_COMMA:
         p[0] = Literals(p[1].literal_list + p[3].literal_list)
     elif len(p) == 4 and p[2] == t_RIGHT_ARROW:
-        import pdb; pdb.set_trace()
         p[0] = p[1]
         p[0].literal_list += p[3].literal_list
         print p[1].literal_list[-1], '-->', p[3].literal_list[0]
@@ -157,11 +166,39 @@ def p_literals(p):
         print 'unhandled case in literals...'
 
 
+class MatchReturnQuery(object):
+    def __init__(self, literals=None, return_variables=None):
+        self.literals = literals
+        self.return_variables = return_variables
+
+
+def p_match_return(p):
+    '''match_return : MATCH literals return_variables'''
+    print 'in match_return'
+    p[0] = MatchReturnQuery(literals=p[2], return_variables=p[3])
+
+
 def p_error(p):
     import pdb; pdb.set_trace()
     print 'error.'
 
-sample = '(IMACLASS:x {bar : "baz", foo:"goo"})-->(IMALSOACLASS:), (LAST:y)'
+
+class ReturnVariables(object):
+    def __init__(self, variable):
+        self.variable_list = [variable]
+
+
+def p_return_variables(p):
+    '''return_variables : RETURN KEY
+                        | return_variables COMMA KEY'''
+    if len(p) == 3:
+        p[0] = ReturnVariables(p[2])
+    elif len(p) == 4:
+        p[1].variable_list.append(p[3])
+        p[0] = p[1]
+
+
+sample = 'MATCH (IMACLASS:x {bar : "baz", foo:"goo"})-->(IMALSOACLASS:), (LAST:y) RETURN x, y'
 # sample = '(IMACLASS:x {bar:"baz"})'
 # sample = '(IMACLASS:x)'
 lexer.input(sample)
