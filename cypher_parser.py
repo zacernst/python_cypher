@@ -7,6 +7,13 @@ next_anonymous_variable = 0
 start = 'match_return'
 
 
+class StateContainer(object):
+    def __init__(self):
+        self.atomic_facts = []
+        self.next_anonymous_variable = 0
+        self.ast = None 
+
+
 class AtomicFact(object):
     """ maybe useful, maybe not. """
     pass
