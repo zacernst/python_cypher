@@ -87,7 +87,7 @@ class CypherToNetworkx(CypherParserBaseClass):
 
 if __name__ == '__main__':
     sample = ','.join(['MATCH (x:SOMECLASS {bar : "baz"',
-                       'foo:"goo"})-->(:ANOTHERCLASS)',
+                       'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
                        '(y:LASTCLASS) RETURN x.bar.baz, y.foo.goo.blah.baz'])
 
     # Now we make a little graph for testing

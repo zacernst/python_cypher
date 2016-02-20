@@ -6,6 +6,9 @@ import ply.lex as lex
 tokens = (
     'LBRACKET',
     'RBRACKET',
+    'DASH',
+    'GREATERTHAN',
+    'LESSTHAN',
     'LPAREN',
     'RPAREN',
     'COLON',
@@ -27,6 +30,9 @@ tokens = (
 
 t_LBRACKET = r'\['
 t_RBRACKET = r'\]'
+t_DASH = r'-'
+t_GREATERTHAN = r'>'
+t_LESSTHAN = r'<'
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
 t_COLON = r':'

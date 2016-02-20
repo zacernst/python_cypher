@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from cypher_tokenizer import *
 from ply import yacc
 
@@ -5,6 +7,12 @@ atomic_facts = []
 next_anonymous_variable = 0
 
 start = 'match_return'
+
+
+class ParsingException(Exception):
+    def __init__(self, msg):
+        print msg
+
 
 class AtomicFact(object):
     """ maybe useful, maybe not. """
@@ -17,11 +25,17 @@ class ClassIs(AtomicFact):
         self.class_name = class_name
 
 
+class EdgeCondition(AtomicFact):
+    def __init__(self, edge_label=None, direction=None):
+        self.edge_label = edge_label
+        print "I'm making an EdgeCondition..."
+
+
 class EdgeExists(AtomicFact):
-    def __init__(self, node_1, node_2, direction=None, edge_label=None):
+    def __init__(self, node_1, node_2, edge_label=None):
         self.node_1 = node_1
         self.node_2 = node_2
-        self.direction = direction
+        self.edge_label = edge_label
 
 
 class AttributeHasValue(AtomicFact):
@@ -111,19 +125,6 @@ def p_node_clause(p):
             AttributeHasValue(p[0].designation, attribute, value))
 
 
-#def p_relationship(p):
-#    '''relationship : literals RIGHT_ARROW literals'''
-#    import pdb; pdb.set_trace()
-#    global atomic_facts
-#    if p[2] == t_RIGHT_ARROW:
-#        p[0] = Relationship(p[1], p[3], arrow_direction='left_right')
-#        atomic_facts.append(EdgeExists(p[0].designation,
-#                            p[2].designation,
-#                            direction='left_right'))
-#    else:
-#        print 'unhandled case?'
-
-
 def p_condition(p):
     '''condition_list : KEY COLON STRING
                       | condition_list COMMA condition_list
@@ -151,31 +152,64 @@ def p_keypath(p):
     p[0] = p[1]
 
 
+def p_edge_condition(p):
+    '''edge_condition : LBRACKET COLON NAME RBRACKET'''
+    p[0] = EdgeCondition(edge_label=p[3])
+
+
+def p_labeled_edge(p):
+    '''labeled_edge : DASH edge_condition DASH GREATERTHAN
+                    | LESSTHAN DASH edge_condition DASH'''
+    if p[1] == t_DASH:
+        p[0] = p[2]
+        p[0].direction = 'left_right'
+    elif p[1] == t_LESSTHAN:
+        p[0] = p[3]
+        p[0].direction = 'right_left'
+    else:
+        import pdb; pdb.set_trace()
+
+
 def p_literals(p):
     '''literals : node_clause
                 | literals COMMA literals
-                | literals RIGHT_ARROW literals'''
+                | literals RIGHT_ARROW literals
+                | literals labeled_edge literals'''
     if len(p) == 2:
         p[0] = Literals(literal_list=[p[1]])
     elif len(p) == 4 and p[2] == t_COMMA:
         p[0] = Literals(p[1].literal_list + p[3].literal_list)
     elif len(p) == 4 and p[2] == t_RIGHT_ARROW:
         p[0] = p[1]
-        p[0].literal_list += p[3].literal_list
         print p[1].literal_list[-1], '-->', p[3].literal_list[0]
         edge_fact = EdgeExists(p[1].literal_list[-1].designation,
                                p[3].literal_list[0].designation)
+        p[0].literal_list += p[3].literal_list
         atomic_facts.append(edge_fact)
     elif len(p) == 4 and p[2] == t_LEFT_ARROW:
         p[0] = p[1]
-        p[0].literal_list += p[3].literal_list
         print p[1].literal_list[-1], '-->', p[3].literal_list[0]
         edge_fact = EdgeExists(p[3].literal_list[0].designation,
                                p[1].literal_list[-1].designation)
+        p[0].literal_list += p[3].literal_list
+        atomic_facts.append(edge_fact)
+    elif isinstance(p[2], EdgeCondition) and p[2].direction == 'left_right':
+        p[0] = p[1]
+        edge_fact = EdgeExists(p[1].literal_list[-1].designation,
+                               p[3].literal_list[0].designation,
+                               edge_label=p[2].edge_label)
+        p[0].literal_list += p[3].literal_list
+        atomic_facts.append(edge_fact)
+    elif isinstance(p[2], EdgeCondition) and p[2].direction == 'right_left':
+        p[0] = p[1]
+        edge_fact = EdgeExists(p[3].literal_list[0].designation,
+                               p[1].literal_list[-1].designation,
+                               edge_label=p[2].edge_label)
+        p[0].literal_list += p[3].literal_list
         atomic_facts.append(edge_fact)
     else:
         print 'unhandled case in literals...'
-
+        import pdb; pdb.set_trace()
 
 def p_match_return(p):
     '''match_return : MATCH literals return_variables'''
@@ -196,7 +230,7 @@ def p_return_variables(p):
 
 
 def p_error(p):
-    print 'error.'
+    raise ParsingException("Not good.")
 
 
 cypher_parser = yacc.yacc()
