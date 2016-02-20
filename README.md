@@ -19,3 +19,5 @@ If you look in the source code, you'll see that it's a bit of a disorganized mes
 I'm experimenting with how best to organize the parser. When I've got a better idea of the right
 strategy, the code will be straightened out, unit tested, documented, and so on. My aim is to
 provide production-quality code that is known to be sound.
+
+Check the github wiki for the project's current status, etc.
