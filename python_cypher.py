@@ -34,6 +34,7 @@ class CypherParserBaseClass(object):
                     desired_class = atomic_fact.class_name
                     if var_class != desired_class:
                         sentinal = False
+                        break
                 if isinstance(atomic_fact, AttributeHasValue):
                     attribute = atomic_fact.attribute
                     desired_value = atomic_fact.value
@@ -41,6 +42,9 @@ class CypherParserBaseClass(object):
                         var_to_element[atomic_fact.designation]], attribute)
                     if value != desired_value:
                         sentinal = False
+                        break
+                if isinstance(atomic_fact, EdgeExists):
+                    import pdb; pdb.set_trace()
             if sentinal:
                 yield var_to_element
 

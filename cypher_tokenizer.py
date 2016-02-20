@@ -8,6 +8,7 @@ tokens = (
     'RPAREN',
     'COLON',
     'RIGHT_ARROW',
+    'LEFT_ARROW',
     'MATCH',
     'RETURN',
     'NAME',
@@ -28,6 +29,7 @@ t_RPAREN = r'\)'
 t_COLON = r':'
 t_WHITESPACE = r'[ ]+'
 t_RIGHT_ARROW = r'-->'
+t_LEFT_ARROW = r'<--'
 t_QUOTE = r'"'
 t_LCURLEY = r'{'
 t_RCURLEY = r'}'

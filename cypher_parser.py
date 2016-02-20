@@ -114,16 +114,17 @@ def p_node_clause(p):
             AttributeHasValue(p[0].designation, attribute, value))
 
 
-def p_relationship(p):
-    '''relationship : node_clause RIGHT_ARROW node_clause'''
-    global atomic_facts
-    if p[2] == t_RIGHT_ARROW:
-        p[0] = Relationship(p[1], p[3], arrow_direction='left_right')
-        atomic_facts.append(EdgeExists(p[0].designation,
-                            p[2].designation,
-                            direction='left_right'))
-    else:
-        print 'unhandled case?'
+#def p_relationship(p):
+#    '''relationship : literals RIGHT_ARROW literals'''
+#    import pdb; pdb.set_trace()
+#    global atomic_facts
+#    if p[2] == t_RIGHT_ARROW:
+#        p[0] = Relationship(p[1], p[3], arrow_direction='left_right')
+#        atomic_facts.append(EdgeExists(p[0].designation,
+#                            p[2].designation,
+#                            direction='left_right'))
+#    else:
+#        print 'unhandled case?'
 
 
 def p_condition(p):
@@ -152,6 +153,16 @@ def p_literals(p):
         p[0] = p[1]
         p[0].literal_list += p[3].literal_list
         print p[1].literal_list[-1], '-->', p[3].literal_list[0]
+        edge_fact = EdgeExists(p[1].literal_list[-1].designation,
+                               p[3].literal_list[0].designation)
+        atomic_facts.append(edge_fact)
+    elif len(p) == 4 and p[2] == t_LEFT_ARROW:
+        p[0] = p[1]
+        p[0].literal_list += p[3].literal_list
+        print p[1].literal_list[-1], '-->', p[3].literal_list[0]
+        edge_fact = EdgeExists(p[3].literal_list[0].designation,
+                               p[1].literal_list[-1].designation)
+        atomic_facts.append(edge_fact)
     else:
         print 'unhandled case in literals...'
 
