@@ -6,14 +6,6 @@ next_anonymous_variable = 0
 
 start = 'match_return'
 
-
-class StateContainer(object):
-    def __init__(self):
-        self.atomic_facts = []
-        self.next_anonymous_variable = 0
-        self.ast = None 
-
-
 class AtomicFact(object):
     """ maybe useful, maybe not. """
     pass
@@ -89,6 +81,11 @@ class ReturnVariables(object):
         self.variable_list = [variable]
 
 
+class Keypath(object):
+    def __init__(self, variable):
+        self.path = [variable]
+
+
 def p_node_clause(p):
     '''node_clause : LPAREN COLON NAME RPAREN
                    | LPAREN KEY COLON NAME RPAREN
@@ -141,6 +138,19 @@ def p_condition(p):
         p[0] = p[2]
 
 
+def p_keypath(p):
+    '''keypath : KEY DOT KEY
+               | keypath DOT KEY'''
+    if len(p) == 4 and isinstance(p[1], str):
+        p[1] = Keypath(p[1])
+        p[1].path.append(p[3])
+    elif len(p) == 4 and isinstance(p[1], Keypath):
+        p[1].path.append(p[3])
+    else:
+        print 'unhandled case in keypath...'
+    p[0] = p[1]
+
+
 def p_literals(p):
     '''literals : node_clause
                 | literals COMMA literals
@@ -175,8 +185,10 @@ def p_match_return(p):
 
 def p_return_variables(p):
     '''return_variables : RETURN KEY
-                        | return_variables COMMA KEY'''
-    if len(p) == 3:
+                        | RETURN keypath
+                        | return_variables COMMA KEY
+                        | return_variables COMMA keypath'''
+    if len(p) == 3 and isinstance(p[2], (str, Keypath)):
         p[0] = ReturnVariables(p[2])
     elif len(p) == 4:
         p[1].variable_list.append(p[3])

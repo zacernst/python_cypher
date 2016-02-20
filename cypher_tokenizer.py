@@ -11,6 +11,7 @@ tokens = (
     'LEFT_ARROW',
     'MATCH',
     'RETURN',
+    'DOT',
     'NAME',
     'WHITESPACE',
     'LCURLEY',
@@ -50,6 +51,11 @@ def t_MATCH(t):
 
 def t_RETURN(t):
     r'RETURN'
+    return t
+
+
+def t_DOT(t):
+    r'\.'
     return t
 
 

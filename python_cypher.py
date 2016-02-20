@@ -9,11 +9,17 @@ class CypherParserBaseClass(object):
         self.tokenizer = cypher_tokenizer
         self.parser = cypher_parser
 
-    def parse(self, input):
-        return self.parser.parse(input)
+    def parse(self, query):
+        self.tokenizer.input(query)
+        tok = self.tokenizer.token()
+        while tok:
+            print tok
+            tok = self.tokenizer.token()
+        return self.parser.parse(query)
 
     def matching_nodes(self, graph_object, query_string):
         result = self.parse(query_string)
+        import pdb; pdb.set_trace()
         all_designations = set()
         for fact in atomic_facts:
             if hasattr(fact, 'designation') and fact.designation is not None:
@@ -69,7 +75,7 @@ class CypherToNetworkx(CypherParserBaseClass):
 if __name__ == '__main__':
     sample = ','.join(['MATCH (x:SOMECLASS {bar : "baz"',
                        'foo:"goo"})-->(:ANOTHERCLASS)',
-                       '(y:LASTCLASS) RETURN x, y'])
+                       '(y:LASTCLASS) RETURN x.bar.baz, y.foo.goo.blah.baz'])
 
     # Now we make a little graph for testing
     g = nx.Graph()
