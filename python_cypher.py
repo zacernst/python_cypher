@@ -3,18 +3,42 @@ import networkx as nx
 from cypher_tokenizer import *
 from cypher_parser import *
 
-sample = ','.join(['MATCH (SOMECLASS:x {bar : "baz"',
-                   'foo:"goo"})-->(ANOTHERCLASS:)',
-                   '(LASTCLASS:y) RETURN x, y'])
+
 # sample = '(IMACLASS:x {bar:"baz"})'
 # sample = '(IMACLASS:x)'
-cypher_tokenizer.input(sample)
-tok = cypher_tokenizer.token()
-while tok:
-    print tok
-    tok = cypher_tokenizer.token()
+# cypher_tokenizer.input(sample)
+# tok = cypher_tokenizer.token()
+# while tok:
+#     print tok
+#     tok = cypher_tokenizer.token()
 
-result = cypher_parser.parse(sample)
+# result = cypher_parser.parse(sample)
+
+class CypherParserBaseClass(object):
+    def __init__(self):
+        self.tokenizer = cypher_tokenizer
+        self.parser = cypher_parser
+
+    def parse(self, text):
+        self.tokenizer.input(text)
+        tok = self.tokenizer.token()
+        while tok:
+            tok = self.tokenizer.token()
+        result = self.parser.parse(text)
+        return result
+
+
+class CypherToNetworkx(CypherParserBaseClass):
+    def _get_domain(self, obj):
+        pass
+
+
+sample = ','.join(['MATCH (x:SOMECLASS {bar : "baz"',
+                   'foo:"goo"})-->(:ANOTHERCLASS)',
+                   '(y:LASTCLASS) RETURN x, y'])
+my_parser = CypherParserBaseClass()
+result = my_parser.parse(sample)
+exit()
 
 
 # Now we make a little graph for testing

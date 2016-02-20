@@ -48,31 +48,6 @@ class AttributeConditionList(object):
         self.attribute_list = attribute_list or {}
 
 
-def p_node_clause(p):
-    '''node_clause : LPAREN NAME COLON RPAREN
-                   | LPAREN NAME COLON KEY RPAREN
-                   | LPAREN NAME COLON KEY condition_list RPAREN'''
-    global next_anonymous_variable
-    global atomic_facts
-    if len(p) == 5:
-        # Just a class name
-        p[0] = Node(node_class=p[2],
-                    designation='_v' + str(next_anonymous_variable),
-                    attribute_conditions={})
-        next_anonymous_variable += 1
-    elif len(p) == 6:
-        # Node class name and variable
-        p[0] = Node(node_class=p[2], designation=p[4], attribute_conditions={})
-    elif len(p) == 7:
-        p[0] = Node(node_class=p[2], designation=p[4],
-                    attribute_conditions=p[5])
-    # Record the atomic facts
-    atomic_facts.append(ClassIs(p[0].designation, p[0].node_class))
-    for attribute, value in p[0].attribute_conditions.iteritems():
-        atomic_facts.append(
-            AttributeHasValue(p[0].designation, attribute, value))
-
-
 class Relationship(object):
     def __init__(self, node_1, node_2, relationship_type=None,
                  min_depth=None, max_depth=None, arrow_direction=None):
@@ -81,6 +56,55 @@ class Relationship(object):
         self.relationship_type = relationship_type
         self.min_depth = min_depth
         self.arrow_direction = arrow_direction
+
+
+class VariableList(object):
+    '''A list of variables, as in RETURN statements, e.g.'''
+    def __init__(self, obj1, obj2):
+        part1 = [obj1] if isinstance(obj1, str) else obj1.variables
+        part2 = [obj2] if isinstance(obj2, str) else obj2.variables
+        self.variables = part1 + part2
+
+
+class MatchReturnQuery(object):
+    def __init__(self, literals=None, return_variables=None):
+        self.literals = literals
+        self.return_variables = return_variables
+
+
+class Literals(object):
+    def __init__(self, literal_list=None):
+        self.literal_list = literal_list
+
+
+class ReturnVariables(object):
+    def __init__(self, variable):
+        self.variable_list = [variable]
+
+
+def p_node_clause(p):
+    '''node_clause : LPAREN COLON NAME RPAREN
+                   | LPAREN KEY COLON NAME RPAREN
+                   | LPAREN KEY COLON NAME condition_list RPAREN'''
+    global next_anonymous_variable
+    global atomic_facts
+    if len(p) == 5:
+        # Just a class name
+        p[0] = Node(node_class=p[3],
+                    designation='_v' + str(next_anonymous_variable),
+                    attribute_conditions={})
+        next_anonymous_variable += 1
+    elif len(p) == 6:
+        # Node class name and variable
+        p[0] = Node(node_class=p[4], designation=p[2], attribute_conditions={})
+    elif len(p) == 7:
+        p[0] = Node(node_class=p[4], designation=p[2],
+                    attribute_conditions=p[5])
+    # Record the atomic facts
+    atomic_facts.append(ClassIs(p[0].designation, p[0].node_class))
+    for attribute, value in p[0].attribute_conditions.iteritems():
+        atomic_facts.append(
+            AttributeHasValue(p[0].designation, attribute, value))
 
 
 def p_relationship(p):
@@ -95,14 +119,6 @@ def p_relationship(p):
         print 'unhandled case?'
 
 
-class VariableList(object):
-    '''A list of variables, as in RETURN statements, e.g.'''
-    def __init__(self, obj1, obj2):
-        part1 = [obj1] if isinstance(obj1, str) else obj1.variables
-        part2 = [obj2] if isinstance(obj2, str) else obj2.variables
-        self.variables = part1 + part2
-
-
 def p_condition(p):
     '''condition_list : KEY COLON STRING
                       | condition_list COMMA condition_list
@@ -115,11 +131,6 @@ def p_condition(p):
         p[1].update(p[3])
     elif len(p) == 4 and isinstance(p[2], dict):
         p[0] = p[2]
-
-
-class Literals(object):
-    def __init__(self, literal_list=None):
-        self.literal_list = literal_list
 
 
 def p_literals(p):
@@ -138,26 +149,10 @@ def p_literals(p):
         print 'unhandled case in literals...'
 
 
-class MatchReturnQuery(object):
-    def __init__(self, literals=None, return_variables=None):
-        self.literals = literals
-        self.return_variables = return_variables
-
-
 def p_match_return(p):
     '''match_return : MATCH literals return_variables'''
     print 'in match_return'
     p[0] = MatchReturnQuery(literals=p[2], return_variables=p[3])
-
-
-def p_error(p):
-    import pdb; pdb.set_trace()
-    print 'error.'
-
-
-class ReturnVariables(object):
-    def __init__(self, variable):
-        self.variable_list = [variable]
 
 
 def p_return_variables(p):
@@ -168,5 +163,11 @@ def p_return_variables(p):
     elif len(p) == 4:
         p[1].variable_list.append(p[3])
         p[0] = p[1]
+
+
+def p_error(p):
+    import pdb; pdb.set_trace()
+    print 'error.'
+
 
 cypher_parser = yacc.yacc()
