@@ -196,7 +196,6 @@ def p_return_variables(p):
 
 
 def p_error(p):
-    import pdb; pdb.set_trace()
     print 'error.'
 
 

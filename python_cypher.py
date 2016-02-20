@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import itertools
 import networkx as nx
 from cypher_tokenizer import *
@@ -19,23 +21,26 @@ class CypherParserBaseClass(object):
 
     def matching_nodes(self, graph_object, query_string):
         result = self.parse(query_string)
-        import pdb; pdb.set_trace()
         all_designations = set()
         for fact in atomic_facts:
             if hasattr(fact, 'designation') and fact.designation is not None:
                 all_designations.add(fact.designation)
         all_designations = sorted(list(all_designations))
 
-        domain = self._get_domain(g)
-        for domain_assignment in itertools.product(*[domain] * len(all_designations)):
-            var_to_element = {all_designations[index]: element for index, element
-                              in enumerate(domain_assignment)}
-            element_to_var = {v: k for k, v in var_to_element.iteritems()}
+        domain = self._get_domain(graph_object)
+        for domain_assignment in itertools.product(
+                *[domain] * len(all_designations)):
+            var_to_element = {all_designations[index]: element for index,
+                              element in enumerate(domain_assignment)}
+            element_to_var = {
+                v: k for k, v in var_to_element.iteritems()}
             sentinal = True
             for atomic_fact in atomic_facts:
                 if isinstance(atomic_fact, ClassIs):
-                    var_class = self._node_class(g.node[
-                        var_to_element[atomic_fact.designation]])
+                    var_class = self._node_class(
+                        self._get_node(graph_object,
+                                       var_to_element[
+                                           atomic_fact.designation]))
                     var = atomic_fact.designation
                     desired_class = atomic_fact.class_name
                     if var_class != desired_class:
@@ -44,13 +49,17 @@ class CypherParserBaseClass(object):
                 if isinstance(atomic_fact, AttributeHasValue):
                     attribute = atomic_fact.attribute
                     desired_value = atomic_fact.value
-                    value = self._node_attribute_value(g.node[
-                        var_to_element[atomic_fact.designation]], attribute)
+                    value = self._node_attribute_value(
+                        self._get_node(graph_object,
+                                       var_to_element[atomic_fact.designation]),
+                        attribute)
                     if value != desired_value:
                         sentinal = False
                         break
                 if isinstance(atomic_fact, EdgeExists):
-                    import pdb; pdb.set_trace()
+                    pass
+                    #self._edge_exists()
+                    #import pdb; pdb.set_trace()
             if sentinal:
                 yield var_to_element
 
@@ -59,10 +68,14 @@ class CypherToNetworkx(CypherParserBaseClass):
     def _get_domain(self, obj):
         return obj.nodes()
 
+    def _get_node(self, graph_object, node_name):
+        return graph_object.node[node_name]
+
     def _node_attribute_value(self, node, attribute):
         return node.get(attribute, 'None')
 
-    def _edge_exists(self, source, target, edge_class=None, directed=True):
+    def _edge_exists(self, graph_obj, source, target,
+                     edge_class=None, directed=True):
         sentinal = True
         if source not in g.edge or target not in g.edge[source]:
             sentinal = False
