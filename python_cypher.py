@@ -2,6 +2,7 @@
 
 import itertools
 import networkx as nx
+import copy
 from cypher_tokenizer import *
 from cypher_parser import *
 
@@ -59,9 +60,17 @@ class CypherParserBaseClass(object):
                 if isinstance(atomic_fact, EdgeExists):
                     pass
                     #self._edge_exists()
-                    #import pdb; pdb.set_trace()
             if sentinal:
-                yield var_to_element
+                print var_to_element
+                variables_to_return = result.return_variables.variable_list
+                return_list = []
+                for return_path in variables_to_return:
+                    if isinstance(return_path, str):
+                        return_list.append(var_to_element[return_path])
+                        break
+                    node = self._get_node(graph_object, var_to_element[return_path.pop(0)])
+                    return_list.append(self._node_attribute_value(node, return_path))
+                yield return_list
 
 
 class CypherToNetworkx(CypherParserBaseClass):
@@ -71,8 +80,16 @@ class CypherToNetworkx(CypherParserBaseClass):
     def _get_node(self, graph_object, node_name):
         return graph_object.node[node_name]
 
-    def _node_attribute_value(self, node, attribute):
-        return node.get(attribute, 'None')
+    def _node_attribute_value(self, node, attribute_list):
+        out = copy.deepcopy(node)
+        for attribute in attribute_list:
+            try:
+                out = out.get(attribute)
+            except:
+                raise Exception(
+                    "Tried to get non-existent attribute {} in node {}.".format(
+                        attribute, node))
+        return out
 
     def _edge_exists(self, graph_obj, source, target,
                      edge_class=None, directed=True):
@@ -81,16 +98,15 @@ class CypherToNetworkx(CypherParserBaseClass):
             sentinal = False
         return sentinal
 
-    def _edge_with_class_exists(self, graph_obj, source, target,
-                                edge_class='parent', class_key='class'):
-        class = graph_obj.get(source, {}).get(target, {}).get(edge_class, None)
-
+    def _node_class(self, node, class_key='class'):
+        return node.get(class_key, None)
 
 
 if __name__ == '__main__':
+    # This main method is just for testing
     sample = ','.join(['MATCH (x:SOMECLASS {bar : "baz"',
                        'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
-                       '(y:LASTCLASS) RETURN x.bar.baz, y.foo.goo.blah.baz'])
+                       '(y:LASTCLASS) RETURN x.foo, y'])
 
     # Now we make a little graph for testing
     g = nx.Graph()
