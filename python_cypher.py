@@ -81,8 +81,10 @@ class CypherToNetworkx(CypherParserBaseClass):
             sentinal = False
         return sentinal
 
-    def _node_class(self, node, class_key='class'):
-        return node.get(class_key, None)
+    def _edge_with_class_exists(self, graph_obj, source, target,
+                                edge_class='parent', class_key='class'):
+        class = graph_obj.get(source, {}).get(target, {}).get(edge_class, None)
+
 
 
 if __name__ == '__main__':
@@ -95,7 +97,7 @@ if __name__ == '__main__':
     g.add_node('node_1', {'class': 'SOMECLASS', 'foo': 'goo', 'bar': 'baz'})
     g.add_node('node_2', {'class': 'ANOTHERCLASS', 'foo': 'not_bar'})
     g.add_node('node_3', {'class': 'LASTCLASS', 'foo': 'goo', 'bar': 'notbaz'})
-    g.add_node('node_4', {'class': 'SOMECLASS', 'foo': 'not goo', 'bar': 'baz'})
+    g.add_node('node_4', {'class': 'SOMECLASS', 'foo': 'boo', 'bar': 'baz'})
 
     g.add_edge('node_1', 'node_2')
     g.add_edge('node_2', 'node_3')
