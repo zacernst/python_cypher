@@ -21,4 +21,5 @@ strategy, the code will be straightened out, unit tested, documented, and so on.
 provide production-quality code that is known to be sound.
 
 Check the [github wiki](https://github.com/zacernst/python_cypher/wiki) for the project's current
-status, roadmap, bugs, etc.
+status, roadmap, bugs, etc. Sphinx documentation will be available
+[right here on Github](http://zacernst.github.io/python_cypher/index.html) as the project develops.
