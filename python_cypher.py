@@ -28,7 +28,6 @@ class CypherParserBaseClass(object):
         all_designations = sorted(list(all_designations))
 
         domain = self._get_domain(graph_object)
-        # Test
         for domain_assignment in itertools.product(
                 *[domain] * len(all_designations)):
             var_to_element = {all_designations[index]: element for index,
