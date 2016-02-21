@@ -20,4 +20,5 @@ I'm experimenting with how best to organize the parser. When I've got a better i
 strategy, the code will be straightened out, unit tested, documented, and so on. My aim is to
 provide production-quality code that is known to be sound.
 
-Check the github wiki for the project's current status, etc.
+Check the [github wiki](https://github.com/zacernst/python_cypher/wiki) for the project's current
+status, roadmap, bugs, etc.

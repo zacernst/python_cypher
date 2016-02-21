@@ -41,7 +41,7 @@ class EdgeExists(AtomicFact):
 class AttributeHasValue(AtomicFact):
     def __init__(self, designation, attribute, value):
         self.designation = designation
-        self.attribute = attribute
+        self.attribute = attribute.split('.')
         self.value = value
 
 
@@ -95,11 +95,6 @@ class ReturnVariables(object):
         self.variable_list = [variable]
 
 
-class Keypath(object):
-    def __init__(self, variable):
-        self.path = [variable]
-
-
 def p_node_clause(p):
     '''node_clause : LPAREN COLON NAME RPAREN
                    | LPAREN KEY COLON NAME RPAREN
@@ -143,10 +138,10 @@ def p_keypath(p):
     '''keypath : KEY DOT KEY
                | keypath DOT KEY'''
     if len(p) == 4 and isinstance(p[1], str):
-        p[1] = Keypath(p[1])
-        p[1].path.append(p[3])
-    elif len(p) == 4 and isinstance(p[1], Keypath):
-        p[1].path.append(p[3])
+        p[1] = [p[1]]
+        p[1].append(p[3])
+    elif len(p) == 4 and isinstance(p[1], list):
+        p[1].append(p[3])
     else:
         print 'unhandled case in keypath...'
     p[0] = p[1]
@@ -222,7 +217,7 @@ def p_return_variables(p):
                         | RETURN keypath
                         | return_variables COMMA KEY
                         | return_variables COMMA keypath'''
-    if len(p) == 3 and isinstance(p[2], (str, Keypath)):
+    if len(p) == 3 and isinstance(p[2], (str, list)):
         p[0] = ReturnVariables(p[2])
     elif len(p) == 4:
         p[1].variable_list.append(p[3])
