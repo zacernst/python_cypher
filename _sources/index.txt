@@ -14,7 +14,10 @@ Contents:
    :maxdepth: 2
 
    _static/usage
+   _static/cypher_tokenizer
+   _static/cypher_parser
    _static/python_cypher
+
 
 Indices and tables
 ==================

@@ -1,0 +1,283 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cypher_tokenizer &mdash; Cypher for Python 0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Cypher for Python 0.1 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Cypher for Python
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../_static/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_static/cypher_tokenizer.html">cypher_tokenizer.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_static/cypher_parser.html">cypher_parser.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_static/python_cypher.html">python_cypher.py</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">Cypher for Python</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>cypher_tokenizer</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cypher_tokenizer</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">ply.lex</span> <span class="kn">as</span> <span class="nn">lex</span>
+<span class="c"># Test</span>
+
+<span class="n">tokens</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s">&#39;LBRACKET&#39;</span><span class="p">,</span>
+    <span class="s">&#39;RBRACKET&#39;</span><span class="p">,</span>
+    <span class="s">&#39;DASH&#39;</span><span class="p">,</span>
+    <span class="s">&#39;GREATERTHAN&#39;</span><span class="p">,</span>
+    <span class="s">&#39;LESSTHAN&#39;</span><span class="p">,</span>
+    <span class="s">&#39;LPAREN&#39;</span><span class="p">,</span>
+    <span class="s">&#39;RPAREN&#39;</span><span class="p">,</span>
+    <span class="s">&#39;COLON&#39;</span><span class="p">,</span>
+    <span class="s">&#39;RIGHT_ARROW&#39;</span><span class="p">,</span>
+    <span class="s">&#39;LEFT_ARROW&#39;</span><span class="p">,</span>
+    <span class="s">&#39;MATCH&#39;</span><span class="p">,</span>
+    <span class="s">&#39;CREATE&#39;</span><span class="p">,</span>
+    <span class="s">&#39;RETURN&#39;</span><span class="p">,</span>
+    <span class="s">&#39;DOT&#39;</span><span class="p">,</span>
+    <span class="s">&#39;NAME&#39;</span><span class="p">,</span>
+    <span class="s">&#39;WHITESPACE&#39;</span><span class="p">,</span>
+    <span class="s">&#39;LCURLEY&#39;</span><span class="p">,</span>
+    <span class="s">&#39;RCURLEY&#39;</span><span class="p">,</span>
+    <span class="s">&#39;COMMA&#39;</span><span class="p">,</span>
+    <span class="s">&#39;QUOTE&#39;</span><span class="p">,</span>
+    <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span>
+    <span class="s">&#39;STRING&#39;</span><span class="p">,</span>
+    <span class="s">&#39;KEY&#39;</span><span class="p">,)</span>
+
+
+<span class="n">t_LBRACKET</span> <span class="o">=</span> <span class="s">r&#39;\[&#39;</span>
+<span class="n">t_RBRACKET</span> <span class="o">=</span> <span class="s">r&#39;\]&#39;</span>
+<span class="n">t_DASH</span> <span class="o">=</span> <span class="s">r&#39;-&#39;</span>
+<span class="n">t_GREATERTHAN</span> <span class="o">=</span> <span class="s">r&#39;&gt;&#39;</span>
+<span class="n">t_LESSTHAN</span> <span class="o">=</span> <span class="s">r&#39;&lt;&#39;</span>
+<span class="n">t_LPAREN</span> <span class="o">=</span> <span class="s">r&#39;\(&#39;</span>
+<span class="n">t_RPAREN</span> <span class="o">=</span> <span class="s">r&#39;\)&#39;</span>
+<span class="n">t_COLON</span> <span class="o">=</span> <span class="s">r&#39;:&#39;</span>
+<span class="n">t_WHITESPACE</span> <span class="o">=</span> <span class="s">r&#39;[ ]+&#39;</span>
+<span class="n">t_RIGHT_ARROW</span> <span class="o">=</span> <span class="s">r&#39;--&gt;&#39;</span>
+<span class="n">t_LEFT_ARROW</span> <span class="o">=</span> <span class="s">r&#39;&lt;--&#39;</span>
+<span class="n">t_QUOTE</span> <span class="o">=</span> <span class="s">r&#39;&quot;&#39;</span>
+<span class="n">t_LCURLEY</span> <span class="o">=</span> <span class="s">r&#39;{&#39;</span>
+<span class="n">t_RCURLEY</span> <span class="o">=</span> <span class="s">r&#39;}&#39;</span>
+<span class="n">t_COMMA</span> <span class="o">=</span> <span class="s">r&#39;,&#39;</span>
+<span class="n">t_STRING</span> <span class="o">=</span> <span class="s">r&#39;&quot;[A-Za-z0-9]+&quot;&#39;</span>
+
+<span class="n">t_ignore</span> <span class="o">=</span> <span class="s">r&#39; &#39;</span>
+
+
+<span class="k">def</span> <span class="nf">t_error</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="k">print</span> <span class="s">&#39;tokenizer error&#39;</span>
+
+
+<div class="viewcode-block" id="t_MATCH"><a class="viewcode-back" href="../_static/cypher_tokenizer.html#cypher_tokenizer.t_MATCH">[docs]</a><span class="k">def</span> <span class="nf">t_MATCH</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="s">r&#39;MATCH&#39;</span>
+    <span class="k">return</span> <span class="n">t</span></div>
+
+
+<div class="viewcode-block" id="t_CREATE"><a class="viewcode-back" href="../_static/cypher_tokenizer.html#cypher_tokenizer.t_CREATE">[docs]</a><span class="k">def</span> <span class="nf">t_CREATE</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="s">r&#39;CREATE&#39;</span>
+    <span class="k">return</span> <span class="n">t</span></div>
+
+
+<div class="viewcode-block" id="t_RETURN"><a class="viewcode-back" href="../_static/cypher_tokenizer.html#cypher_tokenizer.t_RETURN">[docs]</a><span class="k">def</span> <span class="nf">t_RETURN</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="s">r&#39;RETURN&#39;</span>
+    <span class="k">return</span> <span class="n">t</span></div>
+
+
+<div class="viewcode-block" id="t_DOT"><a class="viewcode-back" href="../_static/cypher_tokenizer.html#cypher_tokenizer.t_DOT">[docs]</a><span class="k">def</span> <span class="nf">t_DOT</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="s">r&#39;\.&#39;</span>
+    <span class="k">return</span> <span class="n">t</span></div>
+
+
+<div class="viewcode-block" id="t_NAME"><a class="viewcode-back" href="../_static/cypher_tokenizer.html#cypher_tokenizer.t_NAME">[docs]</a><span class="k">def</span> <span class="nf">t_NAME</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="s">r&#39;[A-Z]+[a-z0-9]*&#39;</span>
+    <span class="k">return</span> <span class="n">t</span></div>
+
+
+<div class="viewcode-block" id="t_KEY"><a class="viewcode-back" href="../_static/cypher_tokenizer.html#cypher_tokenizer.t_KEY">[docs]</a><span class="k">def</span> <span class="nf">t_KEY</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="s">r&#39;[A-Za-z]+[0-9]*&#39;</span>
+    <span class="k">return</span> <span class="n">t</span></div>
+
+
+<div class="viewcode-block" id="t_INTEGER"><a class="viewcode-back" href="../_static/cypher_tokenizer.html#cypher_tokenizer.t_INTEGER">[docs]</a><span class="k">def</span> <span class="nf">t_INTEGER</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="s">r&#39;[0-9]+&#39;</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">)</span></div>
+
+<span class="n">cypher_tokenizer</span> <span class="o">=</span> <span class="n">lex</span><span class="o">.</span><span class="n">lex</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Zachary Ernst.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

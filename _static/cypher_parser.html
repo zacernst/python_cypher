@@ -1,0 +1,358 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cypher_parser.py &mdash; Cypher for Python 0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Cypher for Python 0.1 documentation" href="../index.html"/>
+        <link rel="next" title="python_cypher.py" href="python_cypher.html"/>
+        <link rel="prev" title="cypher_tokenizer.py" href="cypher_tokenizer.html"/> 
+
+  
+  <script src="js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Cypher for Python
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cypher_tokenizer.html">cypher_tokenizer.py</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">cypher_parser.py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_cypher.html">python_cypher.py</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">Cypher for Python</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+    <li>cypher_parser.py</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/_static/cypher_parser.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-cypher_parser">
+<span id="cypher-parser-py"></span><h1>cypher_parser.py<a class="headerlink" href="#module-cypher_parser" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="cypher_parser.AtomicFact">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">AtomicFact</code><a class="reference internal" href="../_modules/cypher_parser.html#AtomicFact"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.AtomicFact" title="Permalink to this definition">¶</a></dt>
+<dd><p>All facts will inherit this class. Not really used yet.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.AttributeConditionList">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">AttributeConditionList</code><span class="sig-paren">(</span><em>attribute_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#AttributeConditionList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.AttributeConditionList" title="Permalink to this definition">¶</a></dt>
+<dd><p>A bunch of AttributeHasValue objects in a list</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.AttributeHasValue">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">AttributeHasValue</code><span class="sig-paren">(</span><em>designation</em>, <em>attribute</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#AttributeHasValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.AttributeHasValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>The constraint that a node must have an attribute with a specific
+value.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.ClassIs">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">ClassIs</code><span class="sig-paren">(</span><em>designation</em>, <em>class_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#ClassIs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.ClassIs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a constraint that a vertex must be of a specific class.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.CreateQuery">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">CreateQuery</code><span class="sig-paren">(</span><em>literals</em>, <em>return_variables=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#CreateQuery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.CreateQuery" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class representing a CREATE... RETURN query, including cases
+where the RETURN isn&#8217;t present.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.EdgeCondition">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">EdgeCondition</code><span class="sig-paren">(</span><em>edge_label=None</em>, <em>direction=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#EdgeCondition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.EdgeCondition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents the constraint that an edge must have a specific
+label, or that it must be run in a specific direction.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.EdgeExists">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">EdgeExists</code><span class="sig-paren">(</span><em>node_1</em>, <em>node_2</em>, <em>edge_label=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#EdgeExists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.EdgeExists" title="Permalink to this definition">¶</a></dt>
+<dd><p>The constraint that an edge exists between two nodes, possibly
+having a specific label.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.Literals">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">Literals</code><span class="sig-paren">(</span><em>literal_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#Literals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.Literals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class representing a sequence of nodes (which we&#8217;re calling
+literals).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.MatchReturnQuery">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">MatchReturnQuery</code><span class="sig-paren">(</span><em>literals=None</em>, <em>return_variables=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#MatchReturnQuery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.MatchReturnQuery" title="Permalink to this definition">¶</a></dt>
+<dd><p>A near top-level class representing any Cypher query of the form
+MATCH... RETURN</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.Node">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">Node</code><span class="sig-paren">(</span><em>node_class=None</em>, <em>designation=None</em>, <em>attribute_conditions=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#Node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.Node" title="Permalink to this definition">¶</a></dt>
+<dd><p>A node specification &#8211; a set of conditions and a designation.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="cypher_parser.ParsingException">
+<em class="property">exception </em><code class="descclassname">cypher_parser.</code><code class="descname">ParsingException</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#ParsingException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.ParsingException" title="Permalink to this definition">¶</a></dt>
+<dd><p>A generic Exception class for the parser.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.ReturnVariables">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">ReturnVariables</code><span class="sig-paren">(</span><em>variable</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#ReturnVariables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.ReturnVariables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class representing a sequence (possibly length one) of variables
+to be returned in a MATCH... RETURN query. This includes variables
+with keypaths for attributes as well.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_condition">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_condition</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_condition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_condition" title="Permalink to this definition">¶</a></dt>
+<dd><p>condition_list : KEY COLON STRING
+| condition_list COMMA condition_list
+| LCURLEY condition_list RCURLEY</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_create">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_create</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_create" title="Permalink to this definition">¶</a></dt>
+<dd><p>create : CREATE literals</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_edge_condition">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_edge_condition</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_edge_condition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_edge_condition" title="Permalink to this definition">¶</a></dt>
+<dd><p>edge_condition : LBRACKET COLON NAME RBRACKET</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_full_query">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_full_query</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_full_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_full_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>full_query : match_return
+| create</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_keypath">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_keypath</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_keypath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_keypath" title="Permalink to this definition">¶</a></dt>
+<dd><p>keypath : KEY DOT KEY
+| keypath DOT KEY</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_labeled_edge">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_labeled_edge</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_labeled_edge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_labeled_edge" title="Permalink to this definition">¶</a></dt>
+<dd><p>labeled_edge : DASH edge_condition DASH GREATERTHAN
+| LESSTHAN DASH edge_condition DASH</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_literals">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_literals</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_literals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_literals" title="Permalink to this definition">¶</a></dt>
+<dd><p>literals : node_clause
+| literals COMMA literals
+| literals RIGHT_ARROW literals
+| literals labeled_edge literals</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_match_return">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_match_return</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_match_return"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_match_return" title="Permalink to this definition">¶</a></dt>
+<dd><p>match_return : MATCH literals return_variables</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_node_clause">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_node_clause</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_node_clause"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_node_clause" title="Permalink to this definition">¶</a></dt>
+<dd><p>node_clause : LPAREN COLON NAME RPAREN
+| LPAREN KEY COLON NAME RPAREN
+| LPAREN KEY COLON NAME condition_list RPAREN</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_return_variables">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_return_variables</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_return_variables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_return_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>return_variables : RETURN KEY
+| RETURN keypath
+| return_variables COMMA KEY
+| return_variables COMMA keypath</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="python_cypher.html" class="btn btn-neutral float-right" title="python_cypher.py" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="cypher_tokenizer.html" class="btn btn-neutral" title="cypher_tokenizer.py" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Zachary Ernst.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="jquery.js"></script>
+      <script type="text/javascript" src="underscore.js"></script>
+      <script type="text/javascript" src="doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
