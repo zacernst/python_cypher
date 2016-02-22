@@ -8,10 +8,10 @@ Cypher for Python
 
 Hi!
 
-```
+``
 def foo():
     return 'bar'
-```
+``
 
 
 Contents:
