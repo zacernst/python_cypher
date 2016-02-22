@@ -8,7 +8,7 @@ Cypher for Python
 
 Hi!
 
-::code-block:: python
+.. code-block:: python
 
     def foo():
         return 'bar'
