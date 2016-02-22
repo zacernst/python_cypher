@@ -55,11 +55,6 @@ facts will be recorded in Python classes which will have methods for testing whe
 a particular choice of nodes. Finally, we'll add a set of methods for querying NetworkX (and other
 systems') graphs. I think that a module like this will be frightfully useful.
 
-If you look in the source code, you'll see that it's a bit of a disorganized mess at the moment.
-I'm experimenting with how best to organize the parser. When I've got a better idea of the right
-strategy, the code will be straightened out, unit tested, documented, and so on. My aim is to
-provide production-quality code that is known to be sound.
-
 Check the [github wiki](https://github.com/zacernst/python_cypher/wiki) for the project's current
 status, roadmap, bugs, etc. Sphinx documentation will be available
 [right here on Github](http://zacernst.github.io/python_cypher/index.html) as the project develops.
