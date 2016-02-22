@@ -6,31 +6,37 @@ from ply import yacc
 atomic_facts = []
 next_anonymous_variable = 0
 
-start = 'match_return'
+start = 'full_query'
 
 
 class ParsingException(Exception):
+    """A generic Exception class for the parser."""
     def __init__(self, msg):
         print msg
 
 
 class AtomicFact(object):
-    """ maybe useful, maybe not. """
+    """All facts will inherit this class. Not really used yet."""
     pass
 
 
 class ClassIs(AtomicFact):
+    """Represents a constraint that a vertex must be of a specific class."""
     def __init__(self, designation, class_name):
         self.designation = designation
         self.class_name = class_name
 
 
 class EdgeCondition(AtomicFact):
+    """Represents the constraint that an edge must have a specific
+       label, or that it must be run in a specific direction."""
     def __init__(self, edge_label=None, direction=None):
         self.edge_label = edge_label
 
 
 class EdgeExists(AtomicFact):
+    """The constraint that an edge exists between two nodes, possibly
+       having a specific label."""
     def __init__(self, node_1, node_2, edge_label=None):
         self.node_1 = node_1
         self.node_2 = node_2
@@ -38,6 +44,8 @@ class EdgeExists(AtomicFact):
 
 
 class AttributeHasValue(AtomicFact):
+    """The constraint that a node must have an attribute with a specific
+       value."""
     def __init__(self, designation, attribute, value):
         self.designation = designation
         self.attribute = attribute.split('.')
@@ -45,7 +53,7 @@ class AttributeHasValue(AtomicFact):
 
 
 class Node(object):
-    '''A node specification -- a set of conditions and a designation.'''
+    """A node specification -- a set of conditions and a designation."""
     def __init__(self, node_class=None, designation=None,
                  attribute_conditions=None):
         self.node_class = node_class
@@ -54,44 +62,41 @@ class Node(object):
 
 
 class AttributeConditionList(object):
-    '''A bunch of AttributeHasValue objects in a list'''
+    """A bunch of AttributeHasValue objects in a list"""
     def __init__(self, attribute_list=None):
         global atomic_facts
         self.attribute_list = attribute_list or {}
 
 
-class Relationship(object):
-    def __init__(self, node_1, node_2, relationship_type=None,
-                 min_depth=None, max_depth=None, arrow_direction=None):
-        self.left_node = node_1
-        self.right_node = node_2
-        self.relationship_type = relationship_type
-        self.min_depth = min_depth
-        self.arrow_direction = arrow_direction
-
-
-class VariableList(object):
-    '''A list of variables, as in RETURN statements, e.g.'''
-    def __init__(self, obj1, obj2):
-        part1 = [obj1] if isinstance(obj1, str) else obj1.variables
-        part2 = [obj2] if isinstance(obj2, str) else obj2.variables
-        self.variables = part1 + part2
-
-
 class MatchReturnQuery(object):
+    """A near top-level class representing any Cypher query of the form
+       MATCH... RETURN"""
     def __init__(self, literals=None, return_variables=None):
         self.literals = literals
         self.return_variables = return_variables
 
 
 class Literals(object):
+    """Class representing a sequence of nodes (which we're calling
+       literals)."""
     def __init__(self, literal_list=None):
         self.literal_list = literal_list
 
 
 class ReturnVariables(object):
+    """Class representing a sequence (possibly length one) of variables
+       to be returned in a MATCH... RETURN query. This includes variables
+       with keypaths for attributes as well."""
     def __init__(self, variable):
         self.variable_list = [variable]
+
+
+class CreateQuery(object):
+    """Class representing a CREATE... RETURN query, including cases
+       where the RETURN isn't present."""
+    def __init__(self, literals, return_variables=None):
+        self.literals = literals
+        self.return_variables = return_variables
 
 
 def p_node_clause(p):
@@ -161,7 +166,7 @@ def p_labeled_edge(p):
         p[0] = p[3]
         p[0].direction = 'right_left'
     else:
-        import pdb; pdb.set_trace()
+        raise Exception("Unhandled case in edge_condition.")
 
 
 def p_literals(p):
@@ -201,11 +206,22 @@ def p_literals(p):
         atomic_facts.append(edge_fact)
     else:
         print 'unhandled case in literals...'
-        import pdb; pdb.set_trace()
+
 
 def p_match_return(p):
     '''match_return : MATCH literals return_variables'''
     p[0] = MatchReturnQuery(literals=p[2], return_variables=p[3])
+
+
+def p_create(p):
+    '''create : CREATE literals'''
+    p[0] = CreateQuery(p[1], return_variables=None)
+
+
+def p_full_query(p):
+    '''full_query : match_return
+                  | create'''
+    p[0] = p[1]
 
 
 def p_return_variables(p):

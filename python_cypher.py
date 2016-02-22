@@ -9,6 +9,7 @@ from cypher_parser import *
 PRINT_TOKENS = False
 PRINT_MATCHING_ASSIGNMENTS = False
 
+
 class CypherParserBaseClass(object):
     def __init__(self):
         self.tokenizer = cypher_tokenizer
@@ -23,8 +24,17 @@ class CypherParserBaseClass(object):
             tok = self.tokenizer.token()
         return self.parser.parse(query)
 
-    def matching_nodes(self, graph_object, query_string):
-        result = self.parse(query_string)
+    def query(self, graph_object, query_string):
+        parsed_query = self.parse(query_string)
+        if isinstance(parsed_query, MatchReturnQuery):
+            for match in self.matching_nodes(graph_object, parsed_query):
+                yield match
+        elif isinstance(parsed_query, CreateQuery):
+            self.create_query(graph_object, parsed_query)
+        else:
+            raise Exception("Unhandled case in query function.")
+
+    def matching_nodes(self, graph_object, parsed_query):
         all_designations = set()
         for fact in atomic_facts:
             if hasattr(fact, 'designation') and fact.designation is not None:
@@ -71,7 +81,7 @@ class CypherParserBaseClass(object):
             if sentinal:
                 if PRINT_MATCHING_ASSIGNMENTS:
                     print var_to_element  # For debugging purposes only
-                variables_to_return = result.return_variables.variable_list
+                variables_to_return = parsed_query.return_variables.variable_list
                 return_list = []
                 for return_path in variables_to_return:
                     if isinstance(return_path, str):
@@ -145,5 +155,5 @@ if __name__ == '__main__':
 
     # Let's enumerate the possible assignments
     my_parser = CypherToNetworkx()
-    for matching_assignment in my_parser.matching_nodes(g, sample):
+    for matching_assignment in my_parser.query(g, sample):
         print matching_assignment

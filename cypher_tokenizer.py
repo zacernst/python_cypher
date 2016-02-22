@@ -15,6 +15,7 @@ tokens = (
     'RIGHT_ARROW',
     'LEFT_ARROW',
     'MATCH',
+    'CREATE',
     'RETURN',
     'DOT',
     'NAME',
@@ -54,6 +55,11 @@ def t_error(t):
 
 def t_MATCH(t):
     r'MATCH'
+    return t
+
+
+def t_CREATE(t):
+    r'CREATE'
     return t
 
 
