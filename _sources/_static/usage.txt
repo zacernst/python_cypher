@@ -24,3 +24,5 @@ from your graph:
    query_string = "MATCH (n:Person)-[:LIVES_IN]->(m:City) RETURN n.name, m"
    for result in networkx_parser.query(my_graph, query_string):
        print result
+
+Voila.
