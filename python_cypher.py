@@ -37,7 +37,7 @@ class CypherParserBaseClass(object):
             for match in self.matching_nodes(graph_object, parsed_query):
                 yield match
         elif isinstance(parsed_query, CreateQuery):
-            self.create_query(graph_object, parsed_query)
+            self._create_query(graph_object, parsed_query)
         else:
             raise Exception("Unhandled case in query function.")
 
@@ -104,6 +104,10 @@ class CypherParserBaseClass(object):
                         self._node_attribute_value(node, return_path))
                 yield return_list
 
+    def _get_domain(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _get_domain needs to be defined in child class.")
+
 
 class CypherToNetworkx(CypherParserBaseClass):
     def _get_domain(self, obj):
@@ -116,6 +120,7 @@ class CypherToNetworkx(CypherParserBaseClass):
         out = copy.deepcopy(node)
         for attribute in attribute_list:
             try:
+
                 out = out.get(attribute)
             except:
                 raise Exception(
@@ -152,6 +157,8 @@ if __name__ == '__main__':
     sample = ','.join(['MATCH (x:SOMECLASS {bar : "baz"',
                        'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
                        '(y:LASTCLASS) RETURN x.foo, y'])
+
+    sample = 'CREATE (n:SOMECLASS) RETURN n'
 
     # Now we make a little graph for testing
     g = nx.MultiDiGraph()
