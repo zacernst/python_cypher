@@ -138,8 +138,19 @@ satisfy the following Cypher query:</p>
 <div class="highlight-python"><div class="highlight"><pre>MATCH (n:Person)-[:LIVES_IN]-&gt;(m:City) RETURN n.name, m
 </pre></div>
 </div>
-<p>The first step is to parse the Cypher query; the second is to call that query
-on the NetworkX graph, and yield back all the results.</p>
+<p>The following steps will accomplish this:</p>
+<ol class="arabic simple">
+<li>Instantiate the parser class for NetworkX.</li>
+<li>Parse the Cypher query from a string into an AST.</li>
+<li>Call that query on the NetworkX graph, yielding back the results.</li>
+</ol>
+<p>The following code snippet will perform these steps, and print all the matches
+from your graph:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">networkx_parser</span> <span class="o">=</span> <span class="n">CypherToNetworkx</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">networkx_parser</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">my_graph</span><span class="p">,</span> <span class="n">query_string</span><span class="p">):</span>
+    <span class="k">print</span> <span class="n">result</span>
+</pre></div>
+</div>
 </div>
 
 

@@ -8,5 +8,15 @@ satisfy the following Cypher query: ::
 
     MATCH (n:Person)-[:LIVES_IN]->(m:City) RETURN n.name, m
 
-The first step is to parse the Cypher query; the second is to call that query
-on the NetworkX graph, and yield back all the results.
+The following steps will accomplish this:
+
+#. Instantiate the parser class for NetworkX.
+#. Parse the Cypher query from a string into an AST.
+#. Call that query on the NetworkX graph, yielding back the results.
+
+The following code snippet will perform these steps, and print all the matches
+from your graph: ::
+
+    networkx_parser = CypherToNetworkx()
+    for result in networkx_parser.query(my_graph, query_string):
+        print result
