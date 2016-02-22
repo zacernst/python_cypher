@@ -146,15 +146,15 @@ satisfy the following Cypher query:</p>
 </ol>
 <p>The following code snippet will perform these steps, and print all the matches
 from your graph:</p>
-<dl class="docutils">
-<dt>::</dt>
-<dd><p class="first">networkx_parser = CypherToNetworkx()
-query_string = &#8220;MATCH (n:Person)-[:LIVES_IN]-&gt;(m:City) RETURN n.name, m&#8221;
-for result in networkx_parser.query(my_graph, query_string):</p>
-<blockquote class="last">
-<div>print result</div></blockquote>
-</dd>
-</dl>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">networkx_parser</span> <span class="o">=</span> <span class="n">CypherToNetworkx</span><span class="p">()</span>
+<span class="n">query_string</span> <span class="o">=</span> <span class="s">&quot;MATCH (n:Person)-[:LIVES_IN]-&gt;(m:City) RETURN n.name, m&quot;</span>
+<span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">networkx_parser</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">my_graph</span><span class="p">,</span> <span class="n">query_string</span><span class="p">):</span>
+    <span class="k">print</span> <span class="n">result</span>
+</pre></div>
+</td></tr></table></div>
 </div>
 
 
