@@ -6,13 +6,9 @@
 Cypher for Python
 =================
 
-Hi!
-
 .. code-block:: python
-
     def foo():
         return 'bar'
-
 
 Contents:
 
