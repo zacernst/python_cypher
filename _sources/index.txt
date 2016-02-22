@@ -6,6 +6,8 @@
 Cypher for Python
 =================
 
+These are the docs for `python_cypher`. 
+
 .. code-block:: python
 
     def foo():
