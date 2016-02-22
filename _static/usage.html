@@ -145,12 +145,14 @@ satisfy the following Cypher query:</p>
 <li>Call that query on the NetworkX graph, yielding back the results.</li>
 </ol>
 <p>The following code snippet will perform these steps, and print all the matches
-from your graph:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">networkx_parser</span> <span class="o">=</span> <span class="n">CypherToNetworkx</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">networkx_parser</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">my_graph</span><span class="p">,</span> <span class="n">query_string</span><span class="p">):</span>
-    <span class="k">print</span> <span class="n">result</span>
-</pre></div>
-</div>
+from your graph: ::python:</p>
+<blockquote>
+<div><p>networkx_parser = CypherToNetworkx()
+query_string = &#8220;MATCH (n:Person)-[:LIVES_IN]-&gt;(m:City) RETURN n.name, m&#8221;
+for result in networkx_parser.query(my_graph, query_string):</p>
+<blockquote>
+<div>print result</div></blockquote>
+</div></blockquote>
 </div>
 
 
