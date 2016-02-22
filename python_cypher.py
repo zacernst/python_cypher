@@ -53,8 +53,9 @@ class CypherParserBaseClass(object):
                 *[domain] * len(all_designations)):
             var_to_element = {all_designations[index]: element for index,
                               element in enumerate(domain_assignment)}
-            element_to_var = {
-                v: k for k, v in var_to_element.iteritems()}
+            # Not sure if element_to_var will be useful
+            # element_to_var = {
+            #     v: k for k, v in var_to_element.iteritems()}
             sentinal = True
             for atomic_fact in atomic_facts:
                 if isinstance(atomic_fact, ClassIs):
@@ -62,7 +63,7 @@ class CypherParserBaseClass(object):
                         self._get_node(graph_object,
                                        var_to_element[
                                            atomic_fact.designation]))
-                    var = atomic_fact.designation
+                    # var = atomic_fact.designation
                     desired_class = atomic_fact.class_name
                     if var_class != desired_class:
                         sentinal = False
@@ -71,31 +72,36 @@ class CypherParserBaseClass(object):
                     attribute = atomic_fact.attribute
                     desired_value = atomic_fact.value
                     value = self._node_attribute_value(
-                        self._get_node(graph_object,
-                                       var_to_element[atomic_fact.designation]),
+                        self._get_node(
+                            graph_object,
+                            var_to_element[atomic_fact.designation]),
                         attribute)
                     if value != desired_value:
                         sentinal = False
                         break
                 if isinstance(atomic_fact, EdgeExists):
                     if not any(
-                        self._edge_class(connecting_edge) == atomic_fact.edge_label
+                        (self._edge_class(connecting_edge) ==
+                         atomic_fact.edge_label)
                         for _, connecting_edge in self._edges_connecting_nodes(
                             graph_object, var_to_element[atomic_fact.node_1],
-                                var_to_element[atomic_fact.node_2])):
+                            var_to_element[atomic_fact.node_2])):
                             sentinal = False
                             break
             if sentinal:
                 if PRINT_MATCHING_ASSIGNMENTS:
                     print var_to_element  # For debugging purposes only
-                variables_to_return = parsed_query.return_variables.variable_list
+                variables_to_return = (
+                    parsed_query.return_variables.variable_list)
                 return_list = []
                 for return_path in variables_to_return:
                     if isinstance(return_path, str):
                         return_list.append(var_to_element[return_path])
                         break
-                    node = self._get_node(graph_object, var_to_element[return_path.pop(0)])
-                    return_list.append(self._node_attribute_value(node, return_path))
+                    node = self._get_node(
+                        graph_object, var_to_element[return_path.pop(0)])
+                    return_list.append(
+                        self._node_attribute_value(node, return_path))
                 yield return_list
 
 
@@ -113,7 +119,7 @@ class CypherToNetworkx(CypherParserBaseClass):
                 out = out.get(attribute)
             except:
                 raise Exception(
-                    "Tried to get non-existent attribute {} in node {}.".format(
+                    "Asked for non-existent attribute {} in node {}.".format(
                         attribute, node))
         return out
 
