@@ -11,11 +11,14 @@ PRINT_MATCHING_ASSIGNMENTS = False
 
 
 class CypherParserBaseClass(object):
+    """Base class that specific parsers will inherit from. Certain methods
+       must be defined in the child class. See the docs."""
     def __init__(self):
         self.tokenizer = cypher_tokenizer
         self.parser = cypher_parser
 
     def parse(self, query):
+        """Calls yacc to parse the query string into an AST."""
         self.tokenizer.input(query)
         tok = self.tokenizer.token()
         while tok:
@@ -25,6 +28,10 @@ class CypherParserBaseClass(object):
         return self.parser.parse(query)
 
     def query(self, graph_object, query_string):
+        """Top-level function that's called by the parser when a query has
+           been transformed to its AST. This function routes the parsed
+           query to a smaller number of high-level functions for handing
+           specific types of queries (e.g. MATCH, CREATE, ...)"""
         parsed_query = self.parse(query_string)
         if isinstance(parsed_query, MatchReturnQuery):
             for match in self.matching_nodes(graph_object, parsed_query):
