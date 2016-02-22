@@ -82,6 +82,7 @@
             
                 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../_static/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_static/python_cypher.html">Docs for python_cypher.py module</a></li>
 </ul>
 
             
@@ -139,14 +140,14 @@
 <span class="n">PRINT_MATCHING_ASSIGNMENTS</span> <span class="o">=</span> <span class="bp">False</span>
 
 
-<div class="viewcode-block" id="CypherParserBaseClass"><a class="viewcode-back" href="../index.html#python_cypher.CypherParserBaseClass">[docs]</a><span class="k">class</span> <span class="nc">CypherParserBaseClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="CypherParserBaseClass"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.CypherParserBaseClass">[docs]</a><span class="k">class</span> <span class="nc">CypherParserBaseClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Base class that specific parsers will inherit from. Certain methods</span>
 <span class="sd">       must be defined in the child class. See the docs.&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">cypher_tokenizer</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">cypher_parser</span>
 
-<div class="viewcode-block" id="CypherParserBaseClass.parse"><a class="viewcode-back" href="../index.html#python_cypher.CypherParserBaseClass.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
+<div class="viewcode-block" id="CypherParserBaseClass.parse"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.CypherParserBaseClass.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Calls yacc to parse the query string into an AST.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">input</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">tok</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">token</span><span class="p">()</span>
@@ -156,7 +157,7 @@
             <span class="n">tok</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">token</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">query</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="CypherParserBaseClass.query"><a class="viewcode-back" href="../index.html#python_cypher.CypherParserBaseClass.query">[docs]</a>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph_object</span><span class="p">,</span> <span class="n">query_string</span><span class="p">):</span>
+<div class="viewcode-block" id="CypherParserBaseClass.query"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.CypherParserBaseClass.query">[docs]</a>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph_object</span><span class="p">,</span> <span class="n">query_string</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Top-level function that&#39;s called by the parser when a query has</span>
 <span class="sd">           been transformed to its AST. This function routes the parsed</span>
 <span class="sd">           query to a smaller number of high-level functions for handing</span>

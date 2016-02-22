@@ -82,6 +82,7 @@
             
                 <ul>
 <li class="toctree-l1"><a class="reference internal" href="_static/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_static/python_cypher.html">Docs for python_cypher.py module</a></li>
 </ul>
 
             
@@ -129,35 +130,11 @@
   <div class="section" id="cypher-for-python">
 <h1>Cypher for Python<a class="headerlink" href="#cypher-for-python" title="Permalink to this headline">¶</a></h1>
 <p>These are the docs for <cite>python_cypher</cite>.</p>
-<div class="highlight-python"><div class="highlight"><pre>
-</pre></div>
-</div>
-<dl class="class">
-<dt id="python_cypher.CypherParserBaseClass">
-<em class="property">class </em><code class="descclassname">python_cypher.</code><code class="descname">CypherParserBaseClass</code><a class="reference internal" href="_modules/python_cypher.html#CypherParserBaseClass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#python_cypher.CypherParserBaseClass" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base class that specific parsers will inherit from. Certain methods
-must be defined in the child class. See the docs.</p>
-<dl class="method">
-<dt id="python_cypher.CypherParserBaseClass.parse">
-<code class="descname">parse</code><span class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/python_cypher.html#CypherParserBaseClass.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#python_cypher.CypherParserBaseClass.parse" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls yacc to parse the query string into an AST.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="python_cypher.CypherParserBaseClass.query">
-<code class="descname">query</code><span class="sig-paren">(</span><em>graph_object</em>, <em>query_string</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/python_cypher.html#CypherParserBaseClass.query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#python_cypher.CypherParserBaseClass.query" title="Permalink to this definition">¶</a></dt>
-<dd><p>Top-level function that&#8217;s called by the parser when a query has
-been transformed to its AST. This function routes the parsed
-query to a smaller number of high-level functions for handing
-specific types of queries (e.g. MATCH, CREATE, ...)</p>
-</dd></dl>
-
-</dd></dl>
-
 <p>Contents:</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="_static/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_static/python_cypher.html">Docs for python_cypher.py module</a></li>
 </ul>
 </div>
 </div>

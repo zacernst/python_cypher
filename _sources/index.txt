@@ -8,21 +8,13 @@ Cypher for Python
 
 These are the docs for `python_cypher`. 
 
-.. code-block:: python
-.. automodule:: python_cypher
-   :members:
-
-
-
-    def foo():
-        return 'bar'
-
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
    _static/usage
+   _static/python_cypher
 
 Indices and tables
 ==================
