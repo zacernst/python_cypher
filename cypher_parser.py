@@ -28,7 +28,6 @@ class ClassIs(AtomicFact):
 class EdgeCondition(AtomicFact):
     def __init__(self, edge_label=None, direction=None):
         self.edge_label = edge_label
-        print "I'm making an EdgeCondition..."
 
 
 class EdgeExists(AtomicFact):
@@ -176,14 +175,12 @@ def p_literals(p):
         p[0] = Literals(p[1].literal_list + p[3].literal_list)
     elif len(p) == 4 and p[2] == t_RIGHT_ARROW:
         p[0] = p[1]
-        print p[1].literal_list[-1], '-->', p[3].literal_list[0]
         edge_fact = EdgeExists(p[1].literal_list[-1].designation,
                                p[3].literal_list[0].designation)
         p[0].literal_list += p[3].literal_list
         atomic_facts.append(edge_fact)
     elif len(p) == 4 and p[2] == t_LEFT_ARROW:
         p[0] = p[1]
-        print p[1].literal_list[-1], '-->', p[3].literal_list[0]
         edge_fact = EdgeExists(p[3].literal_list[0].designation,
                                p[1].literal_list[-1].designation)
         p[0].literal_list += p[3].literal_list
@@ -208,7 +205,6 @@ def p_literals(p):
 
 def p_match_return(p):
     '''match_return : MATCH literals return_variables'''
-    print 'in match_return'
     p[0] = MatchReturnQuery(literals=p[2], return_variables=p[3])
 
 

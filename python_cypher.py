@@ -6,6 +6,8 @@ import copy
 from cypher_tokenizer import *
 from cypher_parser import *
 
+PRINT_TOKENS = False
+PRINT_MATCHING_ASSIGNMENTS = False
 
 class CypherParserBaseClass(object):
     def __init__(self):
@@ -16,7 +18,8 @@ class CypherParserBaseClass(object):
         self.tokenizer.input(query)
         tok = self.tokenizer.token()
         while tok:
-            print tok
+            if PRINT_TOKENS:
+                print tok
             tok = self.tokenizer.token()
         return self.parser.parse(query)
 
@@ -58,8 +61,6 @@ class CypherParserBaseClass(object):
                         sentinal = False
                         break
                 if isinstance(atomic_fact, EdgeExists):
-                    # Could be a multiedge graph
-                    import pdb; pdb.set_trace()
                     if not any(
                         self._edge_class(connecting_edge) == atomic_fact.edge_label
                         for _, connecting_edge in self._edges_connecting_nodes(
@@ -67,9 +68,9 @@ class CypherParserBaseClass(object):
                                 var_to_element[atomic_fact.node_2])):
                             sentinal = False
                             break
-                    #self._edge_exists()
             if sentinal:
-                print var_to_element
+                if PRINT_MATCHING_ASSIGNMENTS:
+                    print var_to_element  # For debugging purposes only
                 variables_to_return = result.return_variables.variable_list
                 return_list = []
                 for return_path in variables_to_return:
@@ -126,7 +127,7 @@ class CypherToNetworkx(CypherParserBaseClass):
 if __name__ == '__main__':
     # This main method is just for testing
     sample = ','.join(['MATCH (x:SOMECLASS {bar : "baz"',
-        'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
+                       'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
                        '(y:LASTCLASS) RETURN x.foo, y'])
 
     # Now we make a little graph for testing
