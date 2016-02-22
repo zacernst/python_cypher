@@ -15,7 +15,9 @@ The following steps will accomplish this:
 #. Call that query on the NetworkX graph, yielding back the results.
 
 The following code snippet will perform these steps, and print all the matches
-from your graph: ::python:
+from your graph:
+
+    ::
 
     networkx_parser = CypherToNetworkx()
     query_string = "MATCH (n:Person)-[:LIVES_IN]->(m:City) RETURN n.name, m"
