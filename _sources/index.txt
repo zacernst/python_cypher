@@ -10,7 +10,7 @@ These are the docs for `python_cypher`.
 
 .. code-block:: python
 .. automodule:: python_cypher
-
+   :members:
 
 
 
