@@ -1,1 +1,1 @@
-Search.setIndex({envversion:42,terms:{content:0,index:0,modul:0,search:0,page:0},objtypes:{},objnames:{},filenames:["index"],titles:["Cypher for Python"],objects:{},titleterms:{cypher:0,welcom:[],python:0,indic:0,tabl:0,document:[]}})
+Search.setIndex({envversion:42,terms:{content:0,index:0,modul:0,search:0,page:0},objtypes:{},objnames:{},filenames:["index","_static/usage"],titles:["Cypher for Python","Usage"],objects:{},titleterms:{cypher:0,welcom:[],python:0,usag:1,indic:0,tabl:0,document:[]}})
