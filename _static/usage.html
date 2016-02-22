@@ -146,13 +146,15 @@ satisfy the following Cypher query:</p>
 </ol>
 <p>The following code snippet will perform these steps, and print all the matches
 from your graph:</p>
-<blockquote>
-<div><p>networkx_parser = CypherToNetworkx()
+<dl class="docutils">
+<dt>::</dt>
+<dd><p class="first">networkx_parser = CypherToNetworkx()
 query_string = &#8220;MATCH (n:Person)-[:LIVES_IN]-&gt;(m:City) RETURN n.name, m&#8221;
 for result in networkx_parser.query(my_graph, query_string):</p>
-<blockquote>
+<blockquote class="last">
 <div>print result</div></blockquote>
-</div></blockquote>
+</dd>
+</dl>
 </div>
 
 
