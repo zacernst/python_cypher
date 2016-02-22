@@ -225,7 +225,7 @@ def p_return_variables(p):
 
 
 def p_error(p):
-    raise ParsingException("Not good.")
+    raise ParsingException("Generic error while parsing.")
 
 
 cypher_parser = yacc.yacc()

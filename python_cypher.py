@@ -58,7 +58,15 @@ class CypherParserBaseClass(object):
                         sentinal = False
                         break
                 if isinstance(atomic_fact, EdgeExists):
-                    pass
+                    # Could be a multiedge graph
+                    import pdb; pdb.set_trace()
+                    if not any(
+                        self._edge_class(connecting_edge) == atomic_fact.edge_label
+                        for _, connecting_edge in self._edges_connecting_nodes(
+                            graph_object, var_to_element[atomic_fact.node_1],
+                                var_to_element[atomic_fact.node_2])):
+                            sentinal = False
+                            break
                     #self._edge_exists()
             if sentinal:
                 print var_to_element
@@ -98,26 +106,41 @@ class CypherToNetworkx(CypherParserBaseClass):
             sentinal = False
         return sentinal
 
+    def _edges_connecting_nodes(self, graph_object, source, target):
+        try:
+            for index, data in graph_object.edge[source][target].iteritems():
+                yield index, data
+        except:
+            pass
+
     def _node_class(self, node, class_key='class'):
         return node.get(class_key, None)
 
+    def _edge_class(self, edge, class_key='class'):
+        try:
+            out = edge.get(class_key, None)
+        except AttributeError:
+            out = None
+        return out
 
 if __name__ == '__main__':
     # This main method is just for testing
     sample = ','.join(['MATCH (x:SOMECLASS {bar : "baz"',
-                       'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
+        'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
                        '(y:LASTCLASS) RETURN x.foo, y'])
 
     # Now we make a little graph for testing
-    g = nx.Graph()
+    g = nx.MultiDiGraph()
     g.add_node('node_1', {'class': 'SOMECLASS', 'foo': 'goo', 'bar': 'baz'})
-    g.add_node('node_2', {'class': 'ANOTHERCLASS', 'foo': 'not_bar'})
+    g.add_node('node_2', {'class': 'ANOTHERCLASS', 'foo': 'goo'})
     g.add_node('node_3', {'class': 'LASTCLASS', 'foo': 'goo', 'bar': 'notbaz'})
     g.add_node('node_4', {'class': 'SOMECLASS', 'foo': 'boo', 'bar': 'baz'})
 
-    g.add_edge('node_1', 'node_2')
+    g.add_edge('node_2', 'node_1')
     g.add_edge('node_2', 'node_3')
     g.add_edge('node_4', 'node_2')
+
+    g['node_2']['node_1'][0]['class'] = 'WHATEVER'
 
     # Let's enumerate the possible assignments
     my_parser = CypherToNetworkx()
