@@ -4,9 +4,7 @@ Usage
 This is all subject to change.
 
 Let's say you have a NetworkX graph and you want to find all the nodes that
-satisfy the following Cypher query:
-
-.. code-block::
+satisfy the following Cypher query: ::
 
     MATCH (n:Person)-[:LIVES_IN]->(m:City) RETURN n.name, m
 

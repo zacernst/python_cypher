@@ -135,6 +135,9 @@
 <p>This is all subject to change.</p>
 <p>Let&#8217;s say you have a NetworkX graph and you want to find all the nodes that
 satisfy the following Cypher query:</p>
+<div class="highlight-python"><div class="highlight"><pre>MATCH (n:Person)-[:LIVES_IN]-&gt;(m:City) RETURN n.name, m
+</pre></div>
+</div>
 <p>The first step is to parse the Cypher query; the second is to call that query
 on the NetworkX graph, and yield back all the results.</p>
 </div>
