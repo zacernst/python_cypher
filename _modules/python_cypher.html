@@ -137,9 +137,13 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">cypher_tokenizer</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">cypher_parser</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
 
 <span class="n">PRINT_TOKENS</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="n">PRINT_MATCHING_ASSIGNMENTS</span> <span class="o">=</span> <span class="bp">False</span>
+
+<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">&#39;bar&#39;</span>
 
 
 <div class="viewcode-block" id="CypherParserBaseClass"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.CypherParserBaseClass">[docs]</a><span class="k">class</span> <span class="nc">CypherParserBaseClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -173,7 +177,16 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unhandled case in query function.&quot;</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">matching_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph_object</span><span class="p">,</span> <span class="n">parsed_query</span><span class="p">):</span>
+<div class="viewcode-block" id="CypherParserBaseClass.create_query"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.CypherParserBaseClass.create_query">[docs]</a>    <span class="k">def</span> <span class="nf">create_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph_object</span><span class="p">,</span> <span class="n">parsed_query</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;For executing queries of the form CREATE... RETURN.&quot;&quot;&quot;</span>
+        <span class="n">designation_to_node</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">literal</span> <span class="ow">in</span> <span class="n">parsed_query</span><span class="o">.</span><span class="n">literals</span><span class="o">.</span><span class="n">literal_list</span><span class="p">:</span>
+            <span class="n">designation_to_node</span><span class="p">[</span><span class="n">literal</span><span class="o">.</span><span class="n">designation</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_node</span><span class="p">(</span>
+                <span class="n">graph_object</span><span class="p">,</span> <span class="n">literal</span><span class="o">.</span><span class="n">node_class</span><span class="p">,</span> <span class="n">literal</span><span class="o">.</span><span class="n">attribute_conditions</span><span class="p">)</span>
+            <span class="kn">import</span> <span class="nn">pdb</span><span class="p">;</span> <span class="n">pdb</span><span class="o">.</span><span class="n">set_trace</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CypherParserBaseClass.matching_nodes"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.CypherParserBaseClass.matching_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">matching_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph_object</span><span class="p">,</span> <span class="n">parsed_query</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;For executing queries of the form MATCH... RETURN.&quot;&quot;&quot;</span>
         <span class="n">all_designations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">fact</span> <span class="ow">in</span> <span class="n">atomic_facts</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fact</span><span class="p">,</span> <span class="s">&#39;designation&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">fact</span><span class="o">.</span><span class="n">designation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -185,8 +198,9 @@
                 <span class="o">*</span><span class="p">[</span><span class="n">domain</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_designations</span><span class="p">)):</span>
             <span class="n">var_to_element</span> <span class="o">=</span> <span class="p">{</span><span class="n">all_designations</span><span class="p">[</span><span class="n">index</span><span class="p">]:</span> <span class="n">element</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span>
                               <span class="n">element</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">domain_assignment</span><span class="p">)}</span>
-            <span class="n">element_to_var</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">var_to_element</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()}</span>
+            <span class="c"># Not sure if element_to_var will be useful</span>
+            <span class="c"># element_to_var = {</span>
+            <span class="c">#     v: k for k, v in var_to_element.iteritems()}</span>
             <span class="n">sentinal</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="k">for</span> <span class="n">atomic_fact</span> <span class="ow">in</span> <span class="n">atomic_facts</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atomic_fact</span><span class="p">,</span> <span class="n">ClassIs</span><span class="p">):</span>
@@ -194,7 +208,7 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">_get_node</span><span class="p">(</span><span class="n">graph_object</span><span class="p">,</span>
                                        <span class="n">var_to_element</span><span class="p">[</span>
                                            <span class="n">atomic_fact</span><span class="o">.</span><span class="n">designation</span><span class="p">]))</span>
-                    <span class="n">var</span> <span class="o">=</span> <span class="n">atomic_fact</span><span class="o">.</span><span class="n">designation</span>
+                    <span class="c"># var = atomic_fact.designation</span>
                     <span class="n">desired_class</span> <span class="o">=</span> <span class="n">atomic_fact</span><span class="o">.</span><span class="n">class_name</span>
                     <span class="k">if</span> <span class="n">var_class</span> <span class="o">!=</span> <span class="n">desired_class</span><span class="p">:</span>
                         <span class="n">sentinal</span> <span class="o">=</span> <span class="bp">False</span>
@@ -203,35 +217,77 @@
                     <span class="n">attribute</span> <span class="o">=</span> <span class="n">atomic_fact</span><span class="o">.</span><span class="n">attribute</span>
                     <span class="n">desired_value</span> <span class="o">=</span> <span class="n">atomic_fact</span><span class="o">.</span><span class="n">value</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_node_attribute_value</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_get_node</span><span class="p">(</span><span class="n">graph_object</span><span class="p">,</span>
-                                       <span class="n">var_to_element</span><span class="p">[</span><span class="n">atomic_fact</span><span class="o">.</span><span class="n">designation</span><span class="p">]),</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_get_node</span><span class="p">(</span>
+                            <span class="n">graph_object</span><span class="p">,</span>
+                            <span class="n">var_to_element</span><span class="p">[</span><span class="n">atomic_fact</span><span class="o">.</span><span class="n">designation</span><span class="p">]),</span>
                         <span class="n">attribute</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">desired_value</span><span class="p">:</span>
                         <span class="n">sentinal</span> <span class="o">=</span> <span class="bp">False</span>
                         <span class="k">break</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atomic_fact</span><span class="p">,</span> <span class="n">EdgeExists</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_edge_class</span><span class="p">(</span><span class="n">connecting_edge</span><span class="p">)</span> <span class="o">==</span> <span class="n">atomic_fact</span><span class="o">.</span><span class="n">edge_label</span>
-                        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">connecting_edge</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges_connecting_nodes</span><span class="p">(</span>
-                            <span class="n">graph_object</span><span class="p">,</span> <span class="n">var_to_element</span><span class="p">[</span><span class="n">atomic_fact</span><span class="o">.</span><span class="n">node_1</span><span class="p">],</span>
-                                <span class="n">var_to_element</span><span class="p">[</span><span class="n">atomic_fact</span><span class="o">.</span><span class="n">node_2</span><span class="p">])):</span>
-                            <span class="n">sentinal</span> <span class="o">=</span> <span class="bp">False</span>
-                            <span class="k">break</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_edge_class</span><span class="p">(</span><span class="n">connecting_edge</span><span class="p">)</span> <span class="o">==</span>
+                                <span class="n">atomic_fact</span><span class="o">.</span><span class="n">edge_label</span><span class="p">)</span>
+                               <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">connecting_edge</span> <span class="ow">in</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">_edges_connecting_nodes</span><span class="p">(</span>
+                                   <span class="n">graph_object</span><span class="p">,</span>
+                                   <span class="n">var_to_element</span><span class="p">[</span><span class="n">atomic_fact</span><span class="o">.</span><span class="n">node_1</span><span class="p">],</span>
+                                   <span class="n">var_to_element</span><span class="p">[</span><span class="n">atomic_fact</span><span class="o">.</span><span class="n">node_2</span><span class="p">])):</span>
+                        <span class="n">sentinal</span> <span class="o">=</span> <span class="bp">False</span>
+                        <span class="k">break</span>
             <span class="k">if</span> <span class="n">sentinal</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">PRINT_MATCHING_ASSIGNMENTS</span><span class="p">:</span>
                     <span class="k">print</span> <span class="n">var_to_element</span>  <span class="c"># For debugging purposes only</span>
-                <span class="n">variables_to_return</span> <span class="o">=</span> <span class="n">parsed_query</span><span class="o">.</span><span class="n">return_variables</span><span class="o">.</span><span class="n">variable_list</span>
+                <span class="n">variables_to_return</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">parsed_query</span><span class="o">.</span><span class="n">return_variables</span><span class="o">.</span><span class="n">variable_list</span><span class="p">)</span>
                 <span class="n">return_list</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">return_path</span> <span class="ow">in</span> <span class="n">variables_to_return</span><span class="p">:</span>
                     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">return_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                         <span class="n">return_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var_to_element</span><span class="p">[</span><span class="n">return_path</span><span class="p">])</span>
                         <span class="k">break</span>
-                    <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_node</span><span class="p">(</span><span class="n">graph_object</span><span class="p">,</span> <span class="n">var_to_element</span><span class="p">[</span><span class="n">return_path</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)])</span>
-                    <span class="n">return_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_node_attribute_value</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">return_path</span><span class="p">))</span>
+                    <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_node</span><span class="p">(</span>
+                        <span class="n">graph_object</span><span class="p">,</span> <span class="n">var_to_element</span><span class="p">[</span><span class="n">return_path</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)])</span>
+                    <span class="n">return_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_node_attribute_value</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">return_path</span><span class="p">))</span>
                 <span class="k">yield</span> <span class="n">return_list</span></div>
 
+    <span class="k">def</span> <span class="nf">_get_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s">&quot;Method _get_domain needs to be defined in child class.&quot;</span><span class="p">)</span>
 
-<span class="k">class</span> <span class="nc">CypherToNetworkx</span><span class="p">(</span><span class="n">CypherParserBaseClass</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s">&quot;Method _get_domain needs to be defined in child class.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_node_attribute_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s">&quot;Method _get_domain needs to be defined in child class.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_edge_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s">&quot;Method _edge_exists needs to be defined in child class.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_edges_connecting_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s">&quot;Method _edges_connecting_nodes needs to be defined &quot;</span>
+            <span class="s">&quot;in child class.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_node_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s">&quot;Method _node_class needs to be defined in child class.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_edge_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s">&quot;Method _edge_class needs to be defined in child class.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s">&quot;Method _create_node needs to be defined in child class.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CypherToNetworkx"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.CypherToNetworkx">[docs]</a><span class="k">class</span> <span class="nc">CypherToNetworkx</span><span class="p">(</span><span class="n">CypherParserBaseClass</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Child class inheriting from ``CypherParserBaseClass`` to hook up</span>
+<span class="sd">       Cypher functionality to NetworkX.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">_get_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">nodes</span><span class="p">()</span>
 
@@ -245,7 +301,7 @@
                 <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">attribute</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
-                    <span class="s">&quot;Tried to get non-existent attribute {} in node {}.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="s">&quot;Asked for non-existent attribute {} in node {}.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">attribute</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">out</span>
 
@@ -273,11 +329,16 @@
             <span class="n">out</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">return</span> <span class="n">out</span>
 
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="c"># This main method is just for testing</span>
+    <span class="k">def</span> <span class="nf">_create_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph_object</span><span class="p">,</span> <span class="n">node_class</span><span class="p">,</span> <span class="n">attribute_conditions</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a node and return it so it can be referred to later.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">sample</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;MATCH (x:SOMECLASS {bar : &quot;baz&quot;&#39;</span><span class="p">,</span>
                        <span class="s">&#39;foo:&quot;goo&quot;})&lt;-[:WHATEVER]-(:ANOTHERCLASS)&#39;</span><span class="p">,</span>
                        <span class="s">&#39;(y:LASTCLASS) RETURN x.foo, y&#39;</span><span class="p">])</span>
+
+    <span class="n">sample</span> <span class="o">=</span> <span class="s">&#39;CREATE (n:SOMECLASS) RETURN n&#39;</span>
 
     <span class="c"># Now we make a little graph for testing</span>
     <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">MultiDiGraph</span><span class="p">()</span>
@@ -296,6 +357,10 @@
     <span class="n">my_parser</span> <span class="o">=</span> <span class="n">CypherToNetworkx</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">matching_assignment</span> <span class="ow">in</span> <span class="n">my_parser</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">sample</span><span class="p">):</span>
         <span class="k">print</span> <span class="n">matching_assignment</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c"># This main method is just for testing</span>
+    <span class="n">main</span><span class="p">()</span>
 </pre></div>
 
            </div>

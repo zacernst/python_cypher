@@ -346,8 +346,8 @@
 
 
 <div class="viewcode-block" id="p_create"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_create">[docs]</a><span class="k">def</span> <span class="nf">p_create</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;create : CREATE literals&#39;&#39;&#39;</span>
-    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">CreateQuery</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">return_variables</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span></div>
+    <span class="sd">&#39;&#39;&#39;create : CREATE literals return_variables&#39;&#39;&#39;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">CreateQuery</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">return_variables</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="p_full_query"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_full_query">[docs]</a><span class="k">def</span> <span class="nf">p_full_query</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
