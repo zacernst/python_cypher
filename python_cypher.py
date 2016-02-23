@@ -3,15 +3,14 @@
 import itertools
 import networkx as nx
 import copy
+import hashlib
+import random
+import time
 from cypher_tokenizer import *
 from cypher_parser import *
-import hashlib
 
 PRINT_TOKENS = False
 PRINT_MATCHING_ASSIGNMENTS = False
-
-def foo():
-    return 'bar'
 
 
 class CypherParserBaseClass(object):
@@ -50,8 +49,17 @@ class CypherParserBaseClass(object):
         designation_to_node = {}
         for literal in parsed_query.literals.literal_list:
             designation_to_node[literal.designation] = self._create_node(
-                graph_object, literal.node_class, literal.attribute_conditions)
-            import pdb; pdb.set_trace()
+                graph_object, literal.node_class,
+                **literal.attribute_conditions)
+            for edge_fact in [
+                fact for fact in atomic_facts if
+                    isinstance(fact, EdgeExists)]:
+                source_node = designation_to_node[edge_fact.node_1]
+                target_node = designation_to_node[edge_fact.node_2]
+                edge_label = edge_fact.edge_label
+                self._create_edge(source_node, target_node,
+                                  edge_label=edge_label)
+        import pdb; pdb.set_trace()
 
     def matching_nodes(self, graph_object, parsed_query):
         """For executing queries of the form MATCH... RETURN."""
@@ -151,6 +159,10 @@ class CypherParserBaseClass(object):
         raise NotImplementedError(
             "Method _create_node needs to be defined in child class.")
 
+    def _create_edge(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _create_edge needs to be defined in child class.")
+
 
 class CypherToNetworkx(CypherParserBaseClass):
     """Child class inheriting from ``CypherParserBaseClass`` to hook up
@@ -197,16 +209,39 @@ class CypherToNetworkx(CypherParserBaseClass):
             out = None
         return out
 
-    def _create_node(self, graph_object, node_class, attribute_conditions):
+    def _create_node(self, graph_object, node_class, **attribute_conditions):
         """Create a node and return it so it can be referred to later."""
-        pass
+        new_id = unique_id()
+        attribute_conditions['class'] = node_class
+        graph_object.add_node(new_id, **attribute_conditions)
+        return new_id
+
+    def _create_edge(self, graph_object, source_node,
+                     target_node, edge_label=None):
+        new_edge_id = unique_id()
+        edges_dict = graph_object.edge[source_node].get(target_node, {})
+        number_of_existing_edges = len(edges_dict)
+        if number_of_existing_edges == 0:
+
+
+
+def random_hash():
+    """Return a random hash for naming new nods and edges."""
+    random_hash = hashlib.md5(str(random.random() + time.time())).hexdigest()
+    return random_hash
+
+
+def unique_id():
+    """Call ``random_hash`` and prepend ``_id_`` to it."""
+    return '_id_' + random_hash()
+
 
 def main():
     sample = ','.join(['MATCH (x:SOMECLASS {bar : "baz"',
                        'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
                        '(y:LASTCLASS) RETURN x.foo, y'])
 
-    sample = 'CREATE (n:SOMECLASS) RETURN n'
+    sample = 'CREATE (n:SOMECLASS)-->(m:ANOTHERCLASS) RETURN n'
 
     # Now we make a little graph for testing
     g = nx.MultiDiGraph()
