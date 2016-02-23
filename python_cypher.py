@@ -5,6 +5,7 @@ import networkx as nx
 import copy
 from cypher_tokenizer import *
 from cypher_parser import *
+import hashlib
 
 PRINT_TOKENS = False
 PRINT_MATCHING_ASSIGNMENTS = False
@@ -37,11 +38,20 @@ class CypherParserBaseClass(object):
             for match in self.matching_nodes(graph_object, parsed_query):
                 yield match
         elif isinstance(parsed_query, CreateQuery):
-            self._create_query(graph_object, parsed_query)
+            self.create_query(graph_object, parsed_query)
         else:
             raise Exception("Unhandled case in query function.")
 
+    def create_query(self, graph_object, parsed_query):
+        """For executing queries of the form CREATE... RETURN."""
+        designation_to_node = {}
+        for literal in parsed_query.literals.literal_list:
+            designation_to_node[literal.designation] = self._create_node(
+                graph_object, literal.node_class, literal.attribute_conditions)
+            import pdb; pdb.set_trace()
+
     def matching_nodes(self, graph_object, parsed_query):
+        """For executing queries of the form MATCH... RETURN."""
         all_designations = set()
         for fact in atomic_facts:
             if hasattr(fact, 'designation') and fact.designation is not None:
@@ -80,14 +90,15 @@ class CypherParserBaseClass(object):
                         sentinal = False
                         break
                 if isinstance(atomic_fact, EdgeExists):
-                    if not any(
-                        (self._edge_class(connecting_edge) ==
-                         atomic_fact.edge_label)
-                        for _, connecting_edge in self._edges_connecting_nodes(
-                            graph_object, var_to_element[atomic_fact.node_1],
-                            var_to_element[atomic_fact.node_2])):
-                            sentinal = False
-                            break
+                    if not any((self._edge_class(connecting_edge) ==
+                                atomic_fact.edge_label)
+                               for _, connecting_edge in
+                               self._edges_connecting_nodes(
+                                   graph_object,
+                                   var_to_element[atomic_fact.node_1],
+                                   var_to_element[atomic_fact.node_2])):
+                        sentinal = False
+                        break
             if sentinal:
                 if PRINT_MATCHING_ASSIGNMENTS:
                     print var_to_element  # For debugging purposes only
@@ -108,8 +119,40 @@ class CypherParserBaseClass(object):
         raise NotImplementedError(
             "Method _get_domain needs to be defined in child class.")
 
+    def _get_node(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _get_domain needs to be defined in child class.")
+
+    def _node_attribute_value(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _get_domain needs to be defined in child class.")
+
+    def _edge_exists(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _edge_exists needs to be defined in child class.")
+
+    def _edges_connecting_nodes(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _edges_connecting_nodes needs to be defined "
+            "in child class.")
+
+    def _node_class(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _node_class needs to be defined in child class.")
+
+    def _edge_class(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _edge_class needs to be defined in child class.")
+
+    def _create_node(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _create_node needs to be defined in child class.")
+
 
 class CypherToNetworkx(CypherParserBaseClass):
+    """Child class inheriting from ``CypherParserBaseClass`` to hook up
+       Cypher functionality to NetworkX.
+    """
     def _get_domain(self, obj):
         return obj.nodes()
 
@@ -120,7 +163,6 @@ class CypherToNetworkx(CypherParserBaseClass):
         out = copy.deepcopy(node)
         for attribute in attribute_list:
             try:
-
                 out = out.get(attribute)
             except:
                 raise Exception(
@@ -152,8 +194,11 @@ class CypherToNetworkx(CypherParserBaseClass):
             out = None
         return out
 
-if __name__ == '__main__':
-    # This main method is just for testing
+    def _create_node(self, graph_object, node_class, attribute_conditions):
+        """Create a node and return it so it can be referred to later."""
+        pass
+
+def main():
     sample = ','.join(['MATCH (x:SOMECLASS {bar : "baz"',
                        'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
                        '(y:LASTCLASS) RETURN x.foo, y'])
@@ -177,3 +222,7 @@ if __name__ == '__main__':
     my_parser = CypherToNetworkx()
     for matching_assignment in my_parser.query(g, sample):
         print matching_assignment
+
+if __name__ == '__main__':
+    # This main method is just for testing
+    main()
