@@ -10,6 +10,9 @@ import hashlib
 PRINT_TOKENS = False
 PRINT_MATCHING_ASSIGNMENTS = False
 
+def foo():
+    return 'bar'
+
 
 class CypherParserBaseClass(object):
     """Base class that specific parsers will inherit from. Certain methods

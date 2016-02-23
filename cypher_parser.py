@@ -214,8 +214,8 @@ def p_match_return(p):
 
 
 def p_create(p):
-    '''create : CREATE literals'''
-    p[0] = CreateQuery(p[1], return_variables=None)
+    '''create : CREATE literals return_variables'''
+    p[0] = CreateQuery(p[2], return_variables=p[3])
 
 
 def p_full_query(p):
