@@ -42,7 +42,7 @@ a new function.
 
 A much better solution would be to have a generic set of functions that translates Cypher queries
 into searches for NetworkX or other graph systems. Then I could stop writing one-off ad-hoc code
-and concentrate on the real work. That's what "Python for Cypher" is meant to do. You simply provide
+and concentrate on the real work. That's what "Cypher for Python" is meant to do. You simply provide
 your Cypher query as a string, and pass it to your graph. You get back the results of that Cypher
 query with no extra futzing around.
 
