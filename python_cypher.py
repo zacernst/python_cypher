@@ -47,19 +47,20 @@ class CypherParserBaseClass(object):
     def create_query(self, graph_object, parsed_query):
         """For executing queries of the form CREATE... RETURN."""
         designation_to_node = {}
+        designation_to_edge = {}
         for literal in parsed_query.literals.literal_list:
             designation_to_node[literal.designation] = self._create_node(
                 graph_object, literal.node_class,
                 **literal.attribute_conditions)
-            for edge_fact in [
+        for edge_fact in [
                 fact for fact in atomic_facts if
-                    isinstance(fact, EdgeExists)]:
-                source_node = designation_to_node[edge_fact.node_1]
-                target_node = designation_to_node[edge_fact.node_2]
-                edge_label = edge_fact.edge_label
-                self._create_edge(source_node, target_node,
-                                  edge_label=edge_label)
-        import pdb; pdb.set_trace()
+                isinstance(fact, EdgeExists)]:
+            source_node = designation_to_node[edge_fact.node_1]
+            target_node = designation_to_node[edge_fact.node_2]
+            edge_label = edge_fact.edge_label
+            new_edge_id = self._create_edge(graph_object, source_node,
+                                            target_node, edge_label=edge_label)
+            designation_to_edge['placeholder'] = new_edge_id
 
     def matching_nodes(self, graph_object, parsed_query):
         """For executing queries of the form MATCH... RETURN."""
@@ -89,7 +90,7 @@ class CypherParserBaseClass(object):
                     if var_class != desired_class:
                         sentinal = False
                         break
-                if isinstance(atomic_fact, AttributeHasValue):
+                elif isinstance(atomic_fact, AttributeHasValue):
                     attribute = atomic_fact.attribute
                     desired_value = atomic_fact.value
                     value = self._node_attribute_value(
@@ -100,7 +101,7 @@ class CypherParserBaseClass(object):
                     if value != desired_value:
                         sentinal = False
                         break
-                if isinstance(atomic_fact, EdgeExists):
+                elif isinstance(atomic_fact, EdgeExists):
                     if not any((self._edge_class(connecting_edge) ==
                                 atomic_fact.edge_label)
                                for _, connecting_edge in
@@ -219,10 +220,10 @@ class CypherToNetworkx(CypherParserBaseClass):
     def _create_edge(self, graph_object, source_node,
                      target_node, edge_label=None):
         new_edge_id = unique_id()
-        edges_dict = graph_object.edge[source_node].get(target_node, {})
-        number_of_existing_edges = len(edges_dict)
-        if number_of_existing_edges == 0:
-
+        graph_object.add_edge(
+            source_node, target_node,
+            **{'edge_label': edge_label, '_id': new_edge_id})
+        return new_edge_id
 
 
 def random_hash():
@@ -258,6 +259,7 @@ def main():
 
     # Let's enumerate the possible assignments
     my_parser = CypherToNetworkx()
+    import pdb; pdb.set_trace()
     for matching_assignment in my_parser.query(g, sample):
         print matching_assignment
 
