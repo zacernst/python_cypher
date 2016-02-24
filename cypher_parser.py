@@ -30,14 +30,15 @@ class ClassIs(AtomicFact):
 class EdgeCondition(AtomicFact):
     """Represents the constraint that an edge must have a specific
        label, or that it must be run in a specific direction."""
-    def __init__(self, edge_label=None, direction=None):
+    def __init__(self, edge_label=None, direction=None, designation=None):
         self.edge_label = edge_label
+        self.designation = designation
 
 
 class EdgeExists(AtomicFact):
     """The constraint that an edge exists between two nodes, possibly
        having a specific label."""
-    def __init__(self, node_1, node_2, edge_label=None):
+    def __init__(self, node_1, node_2, designation=None, edge_label=None):
         self.node_1 = node_1
         self.node_2 = node_2
         self.edge_label = edge_label
@@ -152,8 +153,15 @@ def p_keypath(p):
 
 
 def p_edge_condition(p):
-    '''edge_condition : LBRACKET COLON NAME RBRACKET'''
-    p[0] = EdgeCondition(edge_label=p[3])
+    '''edge_condition : LBRACKET COLON NAME RBRACKET
+                      | LBRACKET KEY COLON NAME RBRACKET'''
+    if p[2] == t_COLON:
+        p[0] = EdgeCondition(edge_label=p[3])
+    elif p[3] == t_COLON and len(p) == 6:
+        p[0] = EdgeCondition(edge_label=p[4], designation=p[2])
+        pass
+    else:
+        raise Exception("Unhandled case in p_edge_condition")
 
 
 def p_labeled_edge(p):
@@ -166,13 +174,14 @@ def p_labeled_edge(p):
         p[0] = p[3]
         p[0].direction = 'right_left'
     else:
-        raise Exception("Unhandled case in edge_condition.")
+        raise Exception("Unhandled case in p_labeled_edge.")
 
 
 def p_literals(p):
     '''literals : node_clause
                 | literals COMMA literals
                 | literals RIGHT_ARROW literals
+                | literals LEFT_ARROW literals
                 | literals labeled_edge literals'''
     if len(p) == 2:
         p[0] = Literals(literal_list=[p[1]])

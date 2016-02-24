@@ -9,7 +9,7 @@ import time
 from cypher_tokenizer import *
 from cypher_parser import *
 
-PRINT_TOKENS = False
+PRINT_TOKENS = True
 PRINT_MATCHING_ASSIGNMENTS = False
 
 
@@ -242,27 +242,26 @@ def main():
                        'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
                        '(y:LASTCLASS) RETURN x.foo, y'])
 
-    sample = 'CREATE (n:SOMECLASS)-->(m:ANOTHERCLASS) RETURN n'
+    sample = 'CREATE (n:SOMECLASS)-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
 
-    # Now we make a little graph for testing
-    g = nx.MultiDiGraph()
-    g.add_node('node_1', {'class': 'SOMECLASS', 'foo': 'goo', 'bar': 'baz'})
-    g.add_node('node_2', {'class': 'ANOTHERCLASS', 'foo': 'goo'})
-    g.add_node('node_3', {'class': 'LASTCLASS', 'foo': 'goo', 'bar': 'notbaz'})
-    g.add_node('node_4', {'class': 'SOMECLASS', 'foo': 'boo', 'bar': 'baz'})
+    # Now we make a little graph for testing    g = nx.MultiDiGraph()
+    # g.add_node('node_1', {'class': 'SOMECLASS', 'foo': 'goo', 'bar': 'baz'})
+    # g.add_node('node_2', {'class': 'ANOTHERCLASS', 'foo': 'goo'})
+    # g.add_node('node_3', {'class': 'LASTCLASS', 'foo': 'goo', 'bar': 'notbaz'})
+    # g.add_node('node_4', {'class': 'SOMECLASS', 'foo': 'boo', 'bar': 'baz'})
 
-    g.add_edge('node_2', 'node_1')
-    g.add_edge('node_2', 'node_3')
-    g.add_edge('node_4', 'node_2')
+    # g.add_edge('node_2', 'node_1')
+    # g.add_edge('node_2', 'node_3')
+    # g.add_edge('node_4', 'node_2')
 
-    g['node_2']['node_1'][0]['class'] = 'WHATEVER'
+    # g['node_2']['node_1'][0]['class'] = 'WHATEVER'
 
     # Let's enumerate the possible assignments
+    g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
-    import pdb; pdb.set_trace()
     for matching_assignment in my_parser.query(g, sample):
         print matching_assignment
-
+    import pdb ; pdb.set_trace()
 if __name__ == '__main__':
     # This main method is just for testing
     main()
