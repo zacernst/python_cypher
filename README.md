@@ -11,7 +11,7 @@ generated from NetworkX) to be queried in Cypher.
 ## TL;DR
 
 Use this to query graphs using the Cypher language. The project is very young, but under active
-development.
+development. Up-to-date information will be kept on the [project wiki](https://github.com/zacernst/python_cypher/wiki).
 
 ## Why does this exist?
 
