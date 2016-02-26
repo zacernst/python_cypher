@@ -9,12 +9,14 @@ tokens = (
     'DASH',
     'GREATERTHAN',
     'LESSTHAN',
+    'EQUALS',
     'LPAREN',
     'RPAREN',
     'COLON',
     'RIGHT_ARROW',
     'LEFT_ARROW',
     'MATCH',
+    'WHERE',
     'CREATE',
     'RETURN',
     'DOT',
@@ -34,6 +36,7 @@ t_RBRACKET = r'\]'
 t_DASH = r'-'
 t_GREATERTHAN = r'>'
 t_LESSTHAN = r'<'
+t_EQUALS = r'='
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
 t_COLON = r':'
@@ -55,6 +58,11 @@ def t_error(t):
 
 def t_MATCH(t):
     r'MATCH'
+    return t
+
+
+def t_WHERE(t):
+    r'WHERE'
     return t
 
 

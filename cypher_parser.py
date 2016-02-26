@@ -100,6 +100,35 @@ class CreateQuery(object):
         self.return_variables = return_variables
 
 
+class Constraint(object):
+    '''Class representing a constraint for use in a MATCH query. For
+       example, WHERE x.foo = "bar"'''
+    def __init__(self, keypath, value, relationship):
+       self.keypath = keypath
+       self.value = value
+       self.relationship = relationship
+
+
+class And(object):
+    '''A conjunction'''
+    def __init__(self, left_conjunct, right_conjunct):
+        self.left_conjunct = left_conjunct
+        self.right_conjunct = right_conjunct
+
+
+class Or(object):
+    '''A disjunction'''
+    def __init__(self, left_disjunct, right_disjunct):
+        self.left_disjunct = left_disjunct
+        self.right_disjunct = right_disjunct
+
+
+class Not(object):
+    '''Negation'''
+    def __init__(self, argument):
+        self.argument = argument
+
+
 def p_node_clause(p):
     '''node_clause : LPAREN COLON NAME RPAREN
                    | LPAREN KEY COLON NAME RPAREN
@@ -140,6 +169,25 @@ def p_condition(p):
         p[1].update(p[3])
     elif len(p) == 4 and isinstance(p[2], dict):
         p[0] = p[2]
+
+
+def p_constraint(p):
+    '''constraint : keypath EQUALS STRING'''
+    p[0] = Constraint(p[1], p[3], '=')
+
+
+def p_constraint_list(p):
+    '''constraint_list : constraint
+                       | constraint_list AND constraint_list
+                       | constraint_list OR constraint_list
+                       | NOT constraint_list
+                       | LPAREN constraint_list RPAREN'''
+    p[0] = None  # Continue here
+
+
+def p_where_clause(p):
+    '''where_clause : WHERE constraint_list'''
+    p[0] = None
 
 
 def p_keypath(p):
