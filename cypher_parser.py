@@ -128,10 +128,13 @@ def p_node_clause(p):
 def p_condition(p):
     '''condition_list : KEY COLON STRING
                       | condition_list COMMA condition_list
-                      | LCURLEY condition_list RCURLEY'''
+                      | LCURLEY condition_list RCURLEY
+                      | KEY COLON condition_list'''
     global atomic_facts
-    if len(p) == 4 and p[2] == ':':
+    if len(p) == 4 and p[2] == ':' and isinstance(p[3], str):
         p[0] = {p[1]: p[3].replace('"', '')}
+    elif len(p) == 4 and p[2] == ':' and isinstance(p[3], dict):
+        p[0] = {p[1]: p[3]}
     elif len(p) == 4 and p[2] == ',':
         p[0] = p[1]
         p[1].update(p[3])
@@ -246,6 +249,7 @@ def p_return_variables(p):
 
 
 def p_error(p):
+    import pdb; pdb.set_trace()
     raise ParsingException("Generic error while parsing.")
 
 

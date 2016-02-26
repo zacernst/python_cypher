@@ -242,12 +242,13 @@ def main():
                        'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
                        '(y:LASTCLASS) RETURN x.foo, y'])
 
-    sample = 'CREATE (n:SOMECLASS)-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
+    sample = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
 
     # Now we make a little graph for testing    g = nx.MultiDiGraph()
     # g.add_node('node_1', {'class': 'SOMECLASS', 'foo': 'goo', 'bar': 'baz'})
     # g.add_node('node_2', {'class': 'ANOTHERCLASS', 'foo': 'goo'})
-    # g.add_node('node_3', {'class': 'LASTCLASS', 'foo': 'goo', 'bar': 'notbaz'})
+    # g.add_node('node_3', {
+    #     'class': 'LASTCLASS', 'foo': 'goo', 'bar': 'notbaz'})
     # g.add_node('node_4', {'class': 'SOMECLASS', 'foo': 'boo', 'bar': 'baz'})
 
     # g.add_edge('node_2', 'node_1')
@@ -261,7 +262,8 @@ def main():
     my_parser = CypherToNetworkx()
     for matching_assignment in my_parser.query(g, sample):
         print matching_assignment
-    import pdb ; pdb.set_trace()
+    import pdb; pdb.set_trace()
+
 if __name__ == '__main__':
     # This main method is just for testing
     main()

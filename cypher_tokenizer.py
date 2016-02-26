@@ -87,4 +87,10 @@ def t_INTEGER(t):
     r'[0-9]+'
     return int(t)
 
+
+def t_FLOAT(t):
+    r'[+-]?[0-9]*\.[0-9]+'
+    return float(t)
+
+
 cypher_tokenizer = lex.lex()
