@@ -1,2 +1,2 @@
 networkx==1.10
-ply==3.7
+ply==3.8
