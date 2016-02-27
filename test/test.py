@@ -1,22 +1,17 @@
 import unittest
+import networkx as nx
 from python_cypher import python_cypher
 
 
-class TestStringMethods(unittest.TestCase):
+class TestPythonCypher(unittest.TestCase):
 
-  def test_upper(self):
-      self.assertEqual('foo'.upper(), 'FOO')
+    def test_upper(self):
+        """Test we can parse a CREATE... RETURN query."""
+        g = nx.MultiDiGraph()
+        query = 'CREATE (n:SOMECLASS) RETURN n'
+        test_parser = python_cypher.CypherToNetworkx()
+        test_parser.query(g, query)
 
-  def test_isupper(self):
-      self.assertTrue('FOO'.isupper())
-      self.assertFalse('Foo'.isupper())
-
-  def test_split(self):
-      s = 'hello world'
-      self.assertEqual(s.split(), ['hello', 'world'])
-      # check that s.split fails when the separator is not a string
-      with self.assertRaises(TypeError):
-          s.split(2)
 
 if __name__ == '__main__':
     unittest.main()
