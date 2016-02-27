@@ -3,7 +3,7 @@ setup(
     name = "PythonCypher",
     version = "0.1",
     packages = find_packages(),
-    scripts = ['cypher_tokenizer.py', 'cypher_parser.py', 'python_cypher.py'],
+    scripts = ['python_cypher/cypher_tokenizer.py', 'python_cypher/cypher_parser.py', 'python_cypher/python_cypher.py'],
 
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
@@ -11,7 +11,6 @@ setup(
 
     package_data = {
     },
-
     # metadata for upload to PyPI
     author = "Zachary Ernst",
     author_email = "zac.ernst@gmail.com",
