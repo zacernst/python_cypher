@@ -1,4 +1,5 @@
-![Develop branch status](https://travis-ci.org/zacernst/python_cypher.svg?branch=develop)
+Develop branch: ![Develop branch status](https://travis-ci.org/zacernst/python_cypher.svg?branch=develop)
+Master branch: ![Master branch status](https://travis-ci.org/zacernst/python_cypher.svg?branch=master)
 
 # Cypher for Python
 
