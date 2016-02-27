@@ -24,6 +24,9 @@ tokens = (
     'WHITESPACE',
     'LCURLEY',
     'RCURLEY',
+    'AND',
+    'OR',
+    'NOT',
     'COMMA',
     'QUOTE',
     'INTEGER',
@@ -58,6 +61,21 @@ def t_error(t):
 
 def t_MATCH(t):
     r'MATCH'
+    return t
+
+
+def t_AND(t):
+    r'AND'
+    return t
+
+
+def t_OR(t):
+    r'OR'
+    return t
+
+
+def t_NOT(t):
+    r'NOT'
     return t
 
 

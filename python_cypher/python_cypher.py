@@ -63,7 +63,7 @@ class CypherParserBaseClass(object):
             designation_to_edge['placeholder'] = new_edge_id
 
     def matching_nodes(self, graph_object, parsed_query):
-        """For executing queries of the form MATCH... RETURN."""
+        """For executing queries of the form MATCH... [WHERE...] RETURN..."""
         all_designations = set()
         for fact in atomic_facts:
             if hasattr(fact, 'designation') and fact.designation is not None:
@@ -112,6 +112,8 @@ class CypherParserBaseClass(object):
                         sentinal = False
                         break
             if sentinal:
+                # So far, we haven't checked the "WHERE" clause.
+
                 if PRINT_MATCHING_ASSIGNMENTS:
                     print var_to_element  # For debugging purposes only
                 variables_to_return = (
@@ -242,8 +244,9 @@ def main():
                        'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
                        '(y:LASTCLASS) RETURN x.foo, y'])
 
-    sample = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
-
+    create = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
+    create = 'CREATE (n:SOMECLASS) RETURN n'
+    match = 'MATCH (n:SOMECLASS) WHERE n.foo="baz" RETURN n'
     # Now we make a little graph for testing    g = nx.MultiDiGraph()
     # g.add_node('node_1', {'class': 'SOMECLASS', 'foo': 'goo', 'bar': 'baz'})
     # g.add_node('node_2', {'class': 'ANOTHERCLASS', 'foo': 'goo'})
@@ -260,8 +263,10 @@ def main():
     # Let's enumerate the possible assignments
     g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
-    for matching_assignment in my_parser.query(g, sample):
-        print matching_assignment
+    for i in my_parser.query(g, create):
+        print i
+    for i in my_parser.query(g, match):
+        print i
     import pdb; pdb.set_trace()
 
 if __name__ == '__main__':
