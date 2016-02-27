@@ -1,3 +1,5 @@
+Develop: (https://travis-ci.org/zacernst/python_cypher.svg?branch=develop)
+
 # Cypher for Python
 
 This is very much a work in progress.
