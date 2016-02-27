@@ -1,1 +1,2 @@
-networkx
+networkx>=1.10,<1.2
+ply>=3.7,<4.0
