@@ -72,9 +72,11 @@ class AttributeConditionList(object):
 class MatchReturnQuery(object):
     """A near top-level class representing any Cypher query of the form
        MATCH... RETURN"""
-    def __init__(self, literals=None, return_variables=None):
+    def __init__(self, literals=None, return_variables=None,
+                 where_clause=None):
         self.literals = literals
         self.return_variables = return_variables
+        self.where_clause = where_clause
 
 
 class Literals(object):
@@ -176,13 +178,30 @@ def p_constraint(p):
     p[0] = Constraint(p[1], p[3], '=')
 
 
+class Constraint(object):
+    '''For WHERE clauses'''
+    def __init__(self, keypath, value):
+        self.keypath = keypath
+        self.value = value
+
+
+class ConstraintList(object):
+    '''A list of Constraint objects'''
+    def __init__(self):
+        self.contraint_list = []
+
+
 def p_constraint_list(p):
     '''constraint_list : constraint
                        | constraint_list AND constraint_list
                        | constraint_list OR constraint_list
                        | NOT constraint_list
                        | LPAREN constraint_list RPAREN'''
-    p[0] = None  # Continue here
+    if len(p) == 1:
+        p[0] = ConstraintList()
+        p[0].list_of_constraints.append(Constraint(p[0]))
+    else:
+        raise Exception("Unhandled case in p_constraint_list.")
 
 
 def p_where_clause(p):
@@ -269,8 +288,15 @@ def p_literals(p):
 
 
 def p_match_return(p):
-    '''match_return : MATCH literals return_variables'''
-    p[0] = MatchReturnQuery(literals=p[2], return_variables=p[3])
+    '''match_return : MATCH literals return_variables
+                    | MATCH literals where_clause return_variables'''
+    if len(p) == 4:
+        p[0] = MatchReturnQuery(literals=p[2], return_variables=p[3])
+    elif len(p) == 5:
+        p[0] = MatchReturnQuery(literals=p[2], return_variables=p[4],
+                                where_clause=p[3])
+    else:
+        raise Exception("Unhandled case in p_match_return.")
 
 
 def p_create(p):
@@ -297,7 +323,6 @@ def p_return_variables(p):
 
 
 def p_error(p):
-    import pdb; pdb.set_trace()
     raise ParsingException("Generic error while parsing.")
 
 
