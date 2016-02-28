@@ -56,10 +56,11 @@ class AttributeHasValue(AtomicFact):
 class Node(object):
     """A node specification -- a set of conditions and a designation."""
     def __init__(self, node_class=None, designation=None,
-                 attribute_conditions=None):
+                 attribute_conditions=None, connecting_edges=None):
         self.node_class = node_class
         self.designation = designation
         self.attribute_conditions = attribute_conditions or {}
+        self.connecting_edges = connecting_edges or []
 
 
 class AttributeConditionList(object):
@@ -82,7 +83,7 @@ class Literals(object):
     """Class representing a sequence of nodes (which we're calling
        literals)."""
     def __init__(self, literal_list=None):
-        self.literal_list = literal_list
+        self.literal_list = literal_list or []
 
 
 class ReturnVariables(object):
@@ -149,10 +150,10 @@ def p_node_clause(p):
         p[0] = Node(node_class=p[4], designation=p[2],
                     attribute_conditions=p[5])
     # Record the atomic facts
-    atomic_facts.append(ClassIs(p[0].designation, p[0].node_class))
-    for attribute, value in p[0].attribute_conditions.iteritems():
-        atomic_facts.append(
-            AttributeHasValue(p[0].designation, attribute, value))
+    # atomic_facts.append(ClassIs(p[0].designation, p[0].node_class))
+    # for attribute, value in p[0].attribute_conditions.iteritems():
+    #     atomic_facts.append(
+    #         AttributeHasValue(p[0].designation, attribute, value))
 
 
 def p_condition(p):
@@ -191,19 +192,22 @@ class Constraint(object):
 
 class ConstraintList(object):
     '''A list of Constraint objects'''
-    def __init__(self):
-        self.constraint_list = []
+    def __init__(self, constraint_list=None, boolean=None):
+        """We'll rig this so that it can contain either Constraints or
+           ConstraintList"""
+        self.constraint_list = constraint_list or []
+        self.boolean = boolean or 'all true'
 
 
 def p_constraint_list(p):
-    '''constraint_list : constraint
+    '''constraint_list : keypath EQUALS STRING
                        | constraint_list AND constraint_list
                        | constraint_list OR constraint_list
-                       | NOT constraint_list
                        | LPAREN constraint_list RPAREN'''
-    if len(p) == 2:
+    if len(p) == 4:
         p[0] = ConstraintList()
-        p[0].constraint_list.append(p[1])
+        atomic_constraint = Constraint(p[1], p[3], "=")
+        p[0].constraint_list.append(atomic_constraint)
     else:
         raise Exception("Unhandled case in p_constraint_list.")
 
@@ -211,8 +215,12 @@ def p_constraint_list(p):
 def p_where_clause(p):
     '''where_clause : WHERE constraint_list'''
     global atomic_facts
-    p[0] = p[2]
-    atomic_facts.append(p[0])
+    if isinstance(p[2], ConstraintList):
+        constraint_list = p[2]
+    else:
+        raise Exception("Unhandled case in p_where_clause.")
+    p[0] = None  # constraint_list
+    # atomic_facts.append(p[0])
 
 
 def p_keypath(p):
@@ -263,32 +271,38 @@ def p_literals(p):
         p[0] = Literals(literal_list=[p[1]])
     elif len(p) == 4 and p[2] == t_COMMA:
         p[0] = Literals(p[1].literal_list + p[3].literal_list)
+
+
     elif len(p) == 4 and p[2] == t_RIGHT_ARROW:
         p[0] = p[1]
         edge_fact = EdgeExists(p[1].literal_list[-1].designation,
                                p[3].literal_list[0].designation)
+        p[0].literal_list[-1].connecting_edges.append(edge_fact)
         p[0].literal_list += p[3].literal_list
-        atomic_facts.append(edge_fact)
+        # atomic_facts.append(edge_fact)
     elif len(p) == 4 and p[2] == t_LEFT_ARROW:
         p[0] = p[1]
         edge_fact = EdgeExists(p[3].literal_list[0].designation,
                                p[1].literal_list[-1].designation)
+        p[0].literal_list[-1].connecting_edges.append(edge_fact)
         p[0].literal_list += p[3].literal_list
-        atomic_facts.append(edge_fact)
+        # atomic_facts.append(edge_fact)
     elif isinstance(p[2], EdgeCondition) and p[2].direction == 'left_right':
         p[0] = p[1]
         edge_fact = EdgeExists(p[1].literal_list[-1].designation,
                                p[3].literal_list[0].designation,
                                edge_label=p[2].edge_label)
+        p[0].literal_list[-1].connecting_edges.append(edge_fact)
         p[0].literal_list += p[3].literal_list
-        atomic_facts.append(edge_fact)
+        # atomic_facts.append(edge_fact)
     elif isinstance(p[2], EdgeCondition) and p[2].direction == 'right_left':
         p[0] = p[1]
         edge_fact = EdgeExists(p[3].literal_list[0].designation,
                                p[1].literal_list[-1].designation,
                                edge_label=p[2].edge_label)
+        p[0].literal_list[-1].connecting_edges.append(edge_fact)
         p[0].literal_list += p[3].literal_list
-        atomic_facts.append(edge_fact)
+        # atomic_facts.append(edge_fact)
     else:
         print 'unhandled case in literals...'
 
