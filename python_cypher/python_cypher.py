@@ -113,7 +113,22 @@ class CypherParserBaseClass(object):
                         break
             if sentinal:
                 # So far, we haven't checked the "WHERE" clause.
-
+                # This just handles equality and no booleans yet.
+                # We'll add a boolean function to the head of each
+                # constraint_list
+                for constraint_list in [i for i in atomic_facts if isinstance(
+                        i, ConstraintList)]:
+                    for constraint in constraint_list.constraint_list:
+                        print constraint.__dict__
+                        node = graph_object.node[
+                            var_to_element[constraint.keypath[0]]]
+                        remaining_keypath = constraint.keypath[1:]
+                        value = self._attribute_value_from_node_keypath(
+                            node, remaining_keypath)
+                        if value != constraint.value:
+                            sentinal = False
+            import pdb; pdb.set_trace()
+            if sentinal:
                 if PRINT_MATCHING_ASSIGNMENTS:
                     print var_to_element  # For debugging purposes only
                 variables_to_return = (
@@ -166,6 +181,9 @@ class CypherParserBaseClass(object):
         raise NotImplementedError(
             "Method _create_edge needs to be defined in child class.")
 
+    def _attribute_value_from_node_keypath(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _attribute_value_from_node_keypath needs to be defined.")
 
 class CypherToNetworkx(CypherParserBaseClass):
     """Child class inheriting from ``CypherParserBaseClass`` to hook up
@@ -187,6 +205,12 @@ class CypherToNetworkx(CypherParserBaseClass):
                     "Asked for non-existent attribute {} in node {}.".format(
                         attribute, node))
         return out
+
+    def _attribute_value_from_node_keypath(self, node, keypath):
+        value = node
+        for key in keypath:
+            value = value[key]
+        return value
 
     def _edge_exists(self, graph_obj, source, target,
                      edge_class=None, directed=True):
@@ -245,8 +269,8 @@ def main():
                        '(y:LASTCLASS) RETURN x.foo, y'])
 
     create = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
-    create = 'CREATE (n:SOMECLASS) RETURN n'
-    match = 'MATCH (n:SOMECLASS) WHERE n.foo="baz" RETURN n'
+    create = 'CREATE (n:SOMECLASS {foo: "bar"}) RETURN n'
+    match = 'MATCH (n:SOMECLASS) WHERE n.foo="qux" RETURN n'
     # Now we make a little graph for testing    g = nx.MultiDiGraph()
     # g.add_node('node_1', {'class': 'SOMECLASS', 'foo': 'goo', 'bar': 'baz'})
     # g.add_node('node_2', {'class': 'ANOTHERCLASS', 'foo': 'goo'})

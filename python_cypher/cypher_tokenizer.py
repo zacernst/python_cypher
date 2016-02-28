@@ -50,7 +50,6 @@ t_QUOTE = r'"'
 t_LCURLEY = r'{'
 t_RCURLEY = r'}'
 t_COMMA = r','
-t_STRING = r'"[A-Za-z0-9]+"'
 
 t_ignore = r' '
 
@@ -118,5 +117,9 @@ def t_FLOAT(t):
     r'[+-]?[0-9]*\.[0-9]+'
     return float(t)
 
+def t_STRING(t):
+    r'"[A-Za-z0-9]+"'
+    t.value = t.value.replace('"', '')
+    return t
 
 cypher_tokenizer = lex.lex()
