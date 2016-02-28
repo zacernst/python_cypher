@@ -65,7 +65,6 @@ class Node(object):
 class AttributeConditionList(object):
     """A bunch of AttributeHasValue objects in a list"""
     def __init__(self, attribute_list=None):
-        global atomic_facts
         self.attribute_list = attribute_list or {}
 
 
@@ -161,7 +160,6 @@ def p_condition(p):
                       | condition_list COMMA condition_list
                       | LCURLEY condition_list RCURLEY
                       | KEY COLON condition_list'''
-    global atomic_facts
     if len(p) == 4 and p[2] == ':' and isinstance(p[3], str):
         p[0] = {p[1]: p[3].replace('"', '')}
     elif len(p) == 4 and p[2] == ':' and isinstance(p[3], dict):
@@ -175,20 +173,26 @@ def p_condition(p):
 
 def p_constraint(p):
     '''constraint : keypath EQUALS STRING'''
-    p[0] = Constraint(p[1], p[3], '=')
+    if p[2] == '=':
+        p[0] = Constraint(p[1], p[3], t_EQUALS)
+    elif p[2] == '>':
+        p[0] = Constraint(p[1], p[3], t_GREATERTHAN)
+    else:
+        raise Exception("Unhandled case in p_constraint.")
 
 
 class Constraint(object):
     '''For WHERE clauses'''
-    def __init__(self, keypath, value):
+    def __init__(self, keypath, value, relation):
         self.keypath = keypath
         self.value = value
+        self.relation = relation
 
 
 class ConstraintList(object):
     '''A list of Constraint objects'''
     def __init__(self):
-        self.contraint_list = []
+        self.constraint_list = []
 
 
 def p_constraint_list(p):
@@ -197,16 +201,18 @@ def p_constraint_list(p):
                        | constraint_list OR constraint_list
                        | NOT constraint_list
                        | LPAREN constraint_list RPAREN'''
-    if len(p) == 1:
+    if len(p) == 2:
         p[0] = ConstraintList()
-        p[0].list_of_constraints.append(Constraint(p[0]))
+        p[0].constraint_list.append(p[1])
     else:
         raise Exception("Unhandled case in p_constraint_list.")
 
 
 def p_where_clause(p):
     '''where_clause : WHERE constraint_list'''
-    p[0] = None
+    global atomic_facts
+    p[0] = p[2]
+    atomic_facts.append(p[0])
 
 
 def p_keypath(p):
