@@ -44,15 +44,6 @@ class EdgeExists(AtomicFact):
         self.edge_label = edge_label
 
 
-class AttributeHasValue(AtomicFact):
-    """The constraint that a node must have an attribute with a specific
-       value."""
-    def __init__(self, designation, attribute, value):
-        self.designation = designation
-        self.attribute = attribute.split('.')
-        self.value = value
-
-
 class Node(object):
     """A node specification -- a set of conditions and a designation."""
     def __init__(self, node_class=None, designation=None,
@@ -63,10 +54,11 @@ class Node(object):
         self.connecting_edges = connecting_edges or []
 
 
-class AttributeConditionList(object):
-    """A bunch of AttributeHasValue objects in a list"""
-    def __init__(self, attribute_list=None):
-        self.attribute_list = attribute_list or {}
+class NodeHasDocument(object):
+    """Condition saying that the node has the (entire) dictionary document."""
+    def __init__(self, designation=None, document=None):
+        self.designation = designation
+        self.document = document
 
 
 class MatchReturnQuery(object):
@@ -214,12 +206,10 @@ def p_constraint_list(p):
 
 def p_where_clause(p):
     '''where_clause : WHERE constraint_list'''
-    global atomic_facts
     if isinstance(p[2], ConstraintList):
-        constraint_list = p[2]
+        p[0] = p[2]
     else:
         raise Exception("Unhandled case in p_where_clause.")
-    p[0] = None  # constraint_list
     # atomic_facts.append(p[0])
 
 

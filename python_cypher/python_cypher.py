@@ -67,6 +67,7 @@ class CypherParserBaseClass(object):
     def matching_nodes(self, graph_object, parsed_query):
         """For executing queries of the form MATCH... [WHERE...] RETURN..."""
         all_designations = set()
+        # Track down atomic_facts from outer scope.
         atomic_facts = extract_atomic_facts(parsed_query)
         for fact in atomic_facts:
             if hasattr(fact, 'designation') and fact.designation is not None:
@@ -95,6 +96,8 @@ class CypherParserBaseClass(object):
                     if var_class != desired_class:
                         sentinal = False
                         print 'failed ClassIs'
+                # Replace `AttributeHasValue` with `ConstraintList`, and do
+                # the recursive checks against the variable assignment
                 elif isinstance(atomic_fact, AttributeHasValue):
                     attribute = atomic_fact.attribute
                     desired_value = atomic_fact.value
@@ -118,7 +121,6 @@ class CypherParserBaseClass(object):
                         print 'failed EdgeExists'
             if sentinal:
                 print 'sentinal...'
-                import pdb; pdb.set_trace()
             if sentinal:
                 # So far, we haven't checked the "WHERE" clause.
                 # This just handles equality and no booleans yet.
@@ -272,27 +274,41 @@ def unique_id():
 
 
 def extract_atomic_facts(query):
-    print 'query:', query
     my_parser = CypherToNetworkx()
     query = my_parser.parse(query)
     def _recurse(subquery):
-        if isinstance(subquery, CreateQuery):  # CreateQuery
+        if subquery is None:
+            return
+        elif isinstance(subquery, MatchReturnQuery):
+            _recurse(subquery.literals)
+            _recurse(subquery.where_clause)
+        elif isinstance(subquery, CreateQuery):  # CreateQuery
             _recurse(subquery.literals)
         elif isinstance(subquery, Literals):   # Literals
             for literal in subquery.literal_list:
                 _recurse(literal)
+        elif isinstance(subquery, ConstraintList):  # ConstraintList
+            # Just add the ConstraintList because it's less "atomic" --
+            # it involves boolean combinations, so we can't effectively
+            # break it down into atoms, storing them separately.
+            _recurse.atomic_facts.append(subquery)
         elif isinstance(subquery, Node):       # Node
-            _recurse.atomic_facts.append(ClassIs(subquery.designation, subquery.node_class))
+            _recurse.atomic_facts.append(ClassIs(subquery.designation,
+                                                 subquery.node_class))
             _recurse.atomic_facts += subquery.connecting_edges
             if hasattr(subquery, 'attribute_conditions'):
-                for k, v in subquery.attribute_conditions.iteritems():
-                    _recurse.atomic_facts.append(AttributeHasValue(subquery.designation, k, v))
+                _recurse.atomic_facts.append(
+                    NodeHasDocument(
+                        designation=subquery.designation,
+                        document=(subquery.attribute_conditions if
+                                  len(subquery.attribute_conditions) > 0
+                                  else None)))
         else:
-            print 'unhandled case in extract_atomic_facts:' + subquery.__class__.__name__
+            print 'unhandled case in extract_atomic_facts:' + (
+                subquery.__class__.__name__)
     _recurse.atomic_facts = []
     _recurse(query)
-    print _recurse.atomic_facts
-    return atomic_facts
+    return _recurse.atomic_facts
 
 
 def main():
@@ -303,28 +319,14 @@ def main():
     create = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
     create_query = 'CREATE (n:SOMECLASS)-->(m:ANOTHERCLASS) RETURN n'
-    test_query = 'CREATE (n:SOMECLASS) RETURN n'
-    extract_atomic_facts(create_query)
+    test_query = 'MATCH (n:SOMECLASS) WHERE n.bar.qux = "baz" RETURN n'
+    atomic_facts = extract_atomic_facts(test_query)
     exit(0)
-    # Now we make a little graph for testing    g = nx.MultiDiGraph()
-    # g.add_node('node_1', {'class': 'SOMECLASS', 'foo': 'goo', 'bar': 'baz'})
-    # g.add_node('node_2', {'class': 'ANOTHERCLASS', 'foo': 'goo'})
-    # g.add_node('node_3', {
-    #     'class': 'LASTCLASS', 'foo': 'goo', 'bar': 'notbaz'})
-    # g.add_node('node_4', {'class': 'SOMECLASS', 'foo': 'boo', 'bar': 'baz'})
 
-    # g.add_edge('node_2', 'node_1')
-    # g.add_edge('node_2', 'node_3')
-    # g.add_edge('node_4', 'node_2')
-
-    # g['node_2']['node_1'][0]['class'] = 'WHATEVER'
-
-    # Let's enumerate the possible assignments
     g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
     for i in my_parser.query(g, create):
         print 'create:', i
-    import pdb; pdb.set_trace()
     for i in my_parser.query(g, match):
         print 'match:', i
 
