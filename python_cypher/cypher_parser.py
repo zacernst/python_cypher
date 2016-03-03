@@ -97,9 +97,9 @@ class Constraint(object):
     '''Class representing a constraint for use in a MATCH query. For
        example, WHERE x.foo = "bar"'''
     def __init__(self, keypath, value, relationship):
-       self.keypath = keypath
-       self.value = value
-       self.relationship = relationship
+        self.keypath = keypath
+        self.value = value
+        self.relationship = relationship
 
 
 class Or(object):
@@ -235,7 +235,6 @@ def p_literals(p):
         p[0] = Literals(literal_list=[p[1]])
     elif len(p) == 4 and p[2] == t_COMMA:
         p[0] = Literals(p[1].literal_list + p[3].literal_list)
-
 
     elif len(p) == 4 and p[2] == t_RIGHT_ARROW:
         p[0] = p[1]
