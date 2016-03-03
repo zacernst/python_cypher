@@ -330,6 +330,7 @@ def main():
     for i in my_parser.query(g, match):
         print 'match:', i
 
+
 if __name__ == '__main__':
     # This main method is just for testing
     main()
