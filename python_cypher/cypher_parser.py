@@ -3,7 +3,6 @@
 from cypher_tokenizer import *
 from ply import yacc
 
-atomic_facts = []
 next_anonymous_variable = 0
 
 start = 'full_query'
@@ -103,13 +102,6 @@ class Constraint(object):
        self.relationship = relationship
 
 
-class And(object):
-    '''A conjunction'''
-    def __init__(self, left_conjunct, right_conjunct):
-        self.left_conjunct = left_conjunct
-        self.right_conjunct = right_conjunct
-
-
 class Or(object):
     '''A disjunction'''
     def __init__(self, left_disjunct, right_disjunct):
@@ -123,12 +115,19 @@ class Not(object):
         self.argument = argument
 
 
+class Constraint(object):
+    '''For WHERE clauses'''
+    def __init__(self, keypath, value, relation):
+        self.keypath = keypath
+        self.value = value
+        self.relation = relation
+
+
 def p_node_clause(p):
     '''node_clause : LPAREN COLON NAME RPAREN
                    | LPAREN KEY COLON NAME RPAREN
                    | LPAREN KEY COLON NAME condition_list RPAREN'''
     global next_anonymous_variable
-    global atomic_facts
     if len(p) == 5:
         # Just a class name
         p[0] = Node(node_class=p[3],
@@ -141,11 +140,6 @@ def p_node_clause(p):
     elif len(p) == 7:
         p[0] = Node(node_class=p[4], designation=p[2],
                     attribute_conditions=p[5])
-    # Record the atomic facts
-    # atomic_facts.append(ClassIs(p[0].designation, p[0].node_class))
-    # for attribute, value in p[0].attribute_conditions.iteritems():
-    #     atomic_facts.append(
-    #         AttributeHasValue(p[0].designation, attribute, value))
 
 
 def p_condition(p):
@@ -165,52 +159,32 @@ def p_condition(p):
 
 
 def p_constraint(p):
-    '''constraint : keypath EQUALS STRING'''
+    '''constraint : keypath EQUALS STRING
+                  | constraint OR constraint
+                  | NOT constraint
+                  | LPAREN constraint RPAREN'''
     if p[2] == '=':
         p[0] = Constraint(p[1], p[3], t_EQUALS)
     elif p[2] == '>':
         p[0] = Constraint(p[1], p[3], t_GREATERTHAN)
+    elif p[2] == 'OR':
+        p[0] = Or(p[1], p[3])
+    elif p[2] == 'AND':
+        p[0] = Not(Or(p[1]), Not(p[3]))
+    elif p[1] == 'NOT':
+        p[0] = Not(p[2])
+    elif p[1] == t_LPAREN:
+        p[0] = p[2]
     else:
         raise Exception("Unhandled case in p_constraint.")
 
 
-class Constraint(object):
-    '''For WHERE clauses'''
-    def __init__(self, keypath, value, relation):
-        self.keypath = keypath
-        self.value = value
-        self.relation = relation
-
-
-class ConstraintList(object):
-    '''A list of Constraint objects'''
-    def __init__(self, constraint_list=None, boolean=None):
-        """We'll rig this so that it can contain either Constraints or
-           ConstraintList"""
-        self.constraint_list = constraint_list or []
-        self.boolean = boolean or 'all true'
-
-
-def p_constraint_list(p):
-    '''constraint_list : keypath EQUALS STRING
-                       | constraint_list AND constraint_list
-                       | constraint_list OR constraint_list
-                       | LPAREN constraint_list RPAREN'''
-    if len(p) == 4:
-        p[0] = ConstraintList()
-        atomic_constraint = Constraint(p[1], p[3], "=")
-        p[0].constraint_list.append(atomic_constraint)
-    else:
-        raise Exception("Unhandled case in p_constraint_list.")
-
-
 def p_where_clause(p):
-    '''where_clause : WHERE constraint_list'''
-    if isinstance(p[2], ConstraintList):
+    '''where_clause : WHERE constraint'''
+    if isinstance(p[2], (Constraint, Or, Not,)):
         p[0] = p[2]
     else:
         raise Exception("Unhandled case in p_where_clause.")
-    # atomic_facts.append(p[0])
 
 
 def p_keypath(p):
@@ -269,14 +243,12 @@ def p_literals(p):
                                p[3].literal_list[0].designation)
         p[0].literal_list[-1].connecting_edges.append(edge_fact)
         p[0].literal_list += p[3].literal_list
-        # atomic_facts.append(edge_fact)
     elif len(p) == 4 and p[2] == t_LEFT_ARROW:
         p[0] = p[1]
         edge_fact = EdgeExists(p[3].literal_list[0].designation,
                                p[1].literal_list[-1].designation)
         p[0].literal_list[-1].connecting_edges.append(edge_fact)
         p[0].literal_list += p[3].literal_list
-        # atomic_facts.append(edge_fact)
     elif isinstance(p[2], EdgeCondition) and p[2].direction == 'left_right':
         p[0] = p[1]
         edge_fact = EdgeExists(p[1].literal_list[-1].designation,
@@ -284,7 +256,6 @@ def p_literals(p):
                                edge_label=p[2].edge_label)
         p[0].literal_list[-1].connecting_edges.append(edge_fact)
         p[0].literal_list += p[3].literal_list
-        # atomic_facts.append(edge_fact)
     elif isinstance(p[2], EdgeCondition) and p[2].direction == 'right_left':
         p[0] = p[1]
         edge_fact = EdgeExists(p[3].literal_list[0].designation,
@@ -292,7 +263,6 @@ def p_literals(p):
                                edge_label=p[2].edge_label)
         p[0].literal_list[-1].connecting_edges.append(edge_fact)
         p[0].literal_list += p[3].literal_list
-        # atomic_facts.append(edge_fact)
     else:
         print 'unhandled case in literals...'
 
