@@ -135,15 +135,14 @@
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">cypher_tokenizer</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">cypher_parser</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">import</span> <span class="nn">hashlib</span>
 
-<span class="n">PRINT_TOKENS</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">PRINT_TOKENS</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="n">PRINT_MATCHING_ASSIGNMENTS</span> <span class="o">=</span> <span class="bp">False</span>
-
-<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
-    <span class="k">return</span> <span class="s">&#39;bar&#39;</span>
 
 
 <div class="viewcode-block" id="CypherParserBaseClass"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.CypherParserBaseClass">[docs]</a><span class="k">class</span> <span class="nc">CypherParserBaseClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -180,13 +179,23 @@
 <div class="viewcode-block" id="CypherParserBaseClass.create_query"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.CypherParserBaseClass.create_query">[docs]</a>    <span class="k">def</span> <span class="nf">create_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph_object</span><span class="p">,</span> <span class="n">parsed_query</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;For executing queries of the form CREATE... RETURN.&quot;&quot;&quot;</span>
         <span class="n">designation_to_node</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">designation_to_edge</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">literal</span> <span class="ow">in</span> <span class="n">parsed_query</span><span class="o">.</span><span class="n">literals</span><span class="o">.</span><span class="n">literal_list</span><span class="p">:</span>
             <span class="n">designation_to_node</span><span class="p">[</span><span class="n">literal</span><span class="o">.</span><span class="n">designation</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_node</span><span class="p">(</span>
-                <span class="n">graph_object</span><span class="p">,</span> <span class="n">literal</span><span class="o">.</span><span class="n">node_class</span><span class="p">,</span> <span class="n">literal</span><span class="o">.</span><span class="n">attribute_conditions</span><span class="p">)</span>
-            <span class="kn">import</span> <span class="nn">pdb</span><span class="p">;</span> <span class="n">pdb</span><span class="o">.</span><span class="n">set_trace</span><span class="p">()</span></div>
+                <span class="n">graph_object</span><span class="p">,</span> <span class="n">literal</span><span class="o">.</span><span class="n">node_class</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">literal</span><span class="o">.</span><span class="n">attribute_conditions</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">edge_fact</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="n">fact</span> <span class="k">for</span> <span class="n">fact</span> <span class="ow">in</span> <span class="n">atomic_facts</span> <span class="k">if</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">fact</span><span class="p">,</span> <span class="n">EdgeExists</span><span class="p">)]:</span>
+            <span class="n">source_node</span> <span class="o">=</span> <span class="n">designation_to_node</span><span class="p">[</span><span class="n">edge_fact</span><span class="o">.</span><span class="n">node_1</span><span class="p">]</span>
+            <span class="n">target_node</span> <span class="o">=</span> <span class="n">designation_to_node</span><span class="p">[</span><span class="n">edge_fact</span><span class="o">.</span><span class="n">node_2</span><span class="p">]</span>
+            <span class="n">edge_label</span> <span class="o">=</span> <span class="n">edge_fact</span><span class="o">.</span><span class="n">edge_label</span>
+            <span class="n">new_edge_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_edge</span><span class="p">(</span><span class="n">graph_object</span><span class="p">,</span> <span class="n">source_node</span><span class="p">,</span>
+                                            <span class="n">target_node</span><span class="p">,</span> <span class="n">edge_label</span><span class="o">=</span><span class="n">edge_label</span><span class="p">)</span>
+            <span class="n">designation_to_edge</span><span class="p">[</span><span class="s">&#39;placeholder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_edge_id</span></div>
 
 <div class="viewcode-block" id="CypherParserBaseClass.matching_nodes"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.CypherParserBaseClass.matching_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">matching_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph_object</span><span class="p">,</span> <span class="n">parsed_query</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;For executing queries of the form MATCH... RETURN.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;For executing queries of the form MATCH... [WHERE...] RETURN...&quot;&quot;&quot;</span>
         <span class="n">all_designations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">fact</span> <span class="ow">in</span> <span class="n">atomic_facts</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fact</span><span class="p">,</span> <span class="s">&#39;designation&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">fact</span><span class="o">.</span><span class="n">designation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -213,7 +222,7 @@
                     <span class="k">if</span> <span class="n">var_class</span> <span class="o">!=</span> <span class="n">desired_class</span><span class="p">:</span>
                         <span class="n">sentinal</span> <span class="o">=</span> <span class="bp">False</span>
                         <span class="k">break</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atomic_fact</span><span class="p">,</span> <span class="n">AttributeHasValue</span><span class="p">):</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atomic_fact</span><span class="p">,</span> <span class="n">AttributeHasValue</span><span class="p">):</span>
                     <span class="n">attribute</span> <span class="o">=</span> <span class="n">atomic_fact</span><span class="o">.</span><span class="n">attribute</span>
                     <span class="n">desired_value</span> <span class="o">=</span> <span class="n">atomic_fact</span><span class="o">.</span><span class="n">value</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_node_attribute_value</span><span class="p">(</span>
@@ -224,7 +233,7 @@
                     <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">desired_value</span><span class="p">:</span>
                         <span class="n">sentinal</span> <span class="o">=</span> <span class="bp">False</span>
                         <span class="k">break</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atomic_fact</span><span class="p">,</span> <span class="n">EdgeExists</span><span class="p">):</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atomic_fact</span><span class="p">,</span> <span class="n">EdgeExists</span><span class="p">):</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_edge_class</span><span class="p">(</span><span class="n">connecting_edge</span><span class="p">)</span> <span class="o">==</span>
                                 <span class="n">atomic_fact</span><span class="o">.</span><span class="n">edge_label</span><span class="p">)</span>
                                <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">connecting_edge</span> <span class="ow">in</span>
@@ -235,6 +244,8 @@
                         <span class="n">sentinal</span> <span class="o">=</span> <span class="bp">False</span>
                         <span class="k">break</span>
             <span class="k">if</span> <span class="n">sentinal</span><span class="p">:</span>
+                <span class="c"># So far, we haven&#39;t checked the &quot;WHERE&quot; clause.</span>
+
                 <span class="k">if</span> <span class="n">PRINT_MATCHING_ASSIGNMENTS</span><span class="p">:</span>
                     <span class="k">print</span> <span class="n">var_to_element</span>  <span class="c"># For debugging purposes only</span>
                 <span class="n">variables_to_return</span> <span class="o">=</span> <span class="p">(</span>
@@ -281,7 +292,11 @@
 
     <span class="k">def</span> <span class="nf">_create_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-            <span class="s">&quot;Method _create_node needs to be defined in child class.&quot;</span><span class="p">)</span></div>
+            <span class="s">&quot;Method _create_node needs to be defined in child class.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_edge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s">&quot;Method _create_edge needs to be defined in child class.&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CypherToNetworkx"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.CypherToNetworkx">[docs]</a><span class="k">class</span> <span class="nc">CypherToNetworkx</span><span class="p">(</span><span class="n">CypherParserBaseClass</span><span class="p">):</span>
@@ -329,34 +344,62 @@
             <span class="n">out</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">return</span> <span class="n">out</span>
 
-    <span class="k">def</span> <span class="nf">_create_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph_object</span><span class="p">,</span> <span class="n">node_class</span><span class="p">,</span> <span class="n">attribute_conditions</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_create_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph_object</span><span class="p">,</span> <span class="n">node_class</span><span class="p">,</span> <span class="o">**</span><span class="n">attribute_conditions</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a node and return it so it can be referred to later.&quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        <span class="n">new_id</span> <span class="o">=</span> <span class="n">unique_id</span><span class="p">()</span>
+        <span class="n">attribute_conditions</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node_class</span>
+        <span class="n">graph_object</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">new_id</span><span class="p">,</span> <span class="o">**</span><span class="n">attribute_conditions</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_id</span>
+
+    <span class="k">def</span> <span class="nf">_create_edge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph_object</span><span class="p">,</span> <span class="n">source_node</span><span class="p">,</span>
+                     <span class="n">target_node</span><span class="p">,</span> <span class="n">edge_label</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">new_edge_id</span> <span class="o">=</span> <span class="n">unique_id</span><span class="p">()</span>
+        <span class="n">graph_object</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span>
+            <span class="n">source_node</span><span class="p">,</span> <span class="n">target_node</span><span class="p">,</span>
+            <span class="o">**</span><span class="p">{</span><span class="s">&#39;edge_label&#39;</span><span class="p">:</span> <span class="n">edge_label</span><span class="p">,</span> <span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">new_edge_id</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">new_edge_id</span></div>
+
+
+<div class="viewcode-block" id="random_hash"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.random_hash">[docs]</a><span class="k">def</span> <span class="nf">random_hash</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return a random hash for naming new nods and edges.&quot;&quot;&quot;</span>
+    <span class="n">random_hash</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">+</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">random_hash</span></div>
+
+
+<div class="viewcode-block" id="unique_id"><a class="viewcode-back" href="../_static/python_cypher.html#python_cypher.unique_id">[docs]</a><span class="k">def</span> <span class="nf">unique_id</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Call ``random_hash`` and prepend ``_id_`` to it.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s">&#39;_id_&#39;</span> <span class="o">+</span> <span class="n">random_hash</span><span class="p">()</span></div>
+
 
 <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">sample</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;MATCH (x:SOMECLASS {bar : &quot;baz&quot;&#39;</span><span class="p">,</span>
                        <span class="s">&#39;foo:&quot;goo&quot;})&lt;-[:WHATEVER]-(:ANOTHERCLASS)&#39;</span><span class="p">,</span>
                        <span class="s">&#39;(y:LASTCLASS) RETURN x.foo, y&#39;</span><span class="p">])</span>
 
-    <span class="n">sample</span> <span class="o">=</span> <span class="s">&#39;CREATE (n:SOMECLASS) RETURN n&#39;</span>
+    <span class="n">create</span> <span class="o">=</span> <span class="s">&#39;CREATE (n:SOMECLASS {foo: &quot;bar&quot;, bar: {qux: &quot;baz&quot;}})-[e:EDGECLASS]-&gt;(m:ANOTHERCLASS) RETURN n&#39;</span>
+    <span class="n">create</span> <span class="o">=</span> <span class="s">&#39;CREATE (n:SOMECLASS) RETURN n&#39;</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="s">&#39;MATCH (n:SOMECLASS) WHERE n.foo=&quot;baz&quot; RETURN n&#39;</span>
+    <span class="c"># Now we make a little graph for testing    g = nx.MultiDiGraph()</span>
+    <span class="c"># g.add_node(&#39;node_1&#39;, {&#39;class&#39;: &#39;SOMECLASS&#39;, &#39;foo&#39;: &#39;goo&#39;, &#39;bar&#39;: &#39;baz&#39;})</span>
+    <span class="c"># g.add_node(&#39;node_2&#39;, {&#39;class&#39;: &#39;ANOTHERCLASS&#39;, &#39;foo&#39;: &#39;goo&#39;})</span>
+    <span class="c"># g.add_node(&#39;node_3&#39;, {</span>
+    <span class="c">#     &#39;class&#39;: &#39;LASTCLASS&#39;, &#39;foo&#39;: &#39;goo&#39;, &#39;bar&#39;: &#39;notbaz&#39;})</span>
+    <span class="c"># g.add_node(&#39;node_4&#39;, {&#39;class&#39;: &#39;SOMECLASS&#39;, &#39;foo&#39;: &#39;boo&#39;, &#39;bar&#39;: &#39;baz&#39;})</span>
 
-    <span class="c"># Now we make a little graph for testing</span>
-    <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">MultiDiGraph</span><span class="p">()</span>
-    <span class="n">g</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s">&#39;node_1&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;class&#39;</span><span class="p">:</span> <span class="s">&#39;SOMECLASS&#39;</span><span class="p">,</span> <span class="s">&#39;foo&#39;</span><span class="p">:</span> <span class="s">&#39;goo&#39;</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">:</span> <span class="s">&#39;baz&#39;</span><span class="p">})</span>
-    <span class="n">g</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s">&#39;node_2&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;class&#39;</span><span class="p">:</span> <span class="s">&#39;ANOTHERCLASS&#39;</span><span class="p">,</span> <span class="s">&#39;foo&#39;</span><span class="p">:</span> <span class="s">&#39;goo&#39;</span><span class="p">})</span>
-    <span class="n">g</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s">&#39;node_3&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;class&#39;</span><span class="p">:</span> <span class="s">&#39;LASTCLASS&#39;</span><span class="p">,</span> <span class="s">&#39;foo&#39;</span><span class="p">:</span> <span class="s">&#39;goo&#39;</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">:</span> <span class="s">&#39;notbaz&#39;</span><span class="p">})</span>
-    <span class="n">g</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s">&#39;node_4&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;class&#39;</span><span class="p">:</span> <span class="s">&#39;SOMECLASS&#39;</span><span class="p">,</span> <span class="s">&#39;foo&#39;</span><span class="p">:</span> <span class="s">&#39;boo&#39;</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">:</span> <span class="s">&#39;baz&#39;</span><span class="p">})</span>
+    <span class="c"># g.add_edge(&#39;node_2&#39;, &#39;node_1&#39;)</span>
+    <span class="c"># g.add_edge(&#39;node_2&#39;, &#39;node_3&#39;)</span>
+    <span class="c"># g.add_edge(&#39;node_4&#39;, &#39;node_2&#39;)</span>
 
-    <span class="n">g</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s">&#39;node_2&#39;</span><span class="p">,</span> <span class="s">&#39;node_1&#39;</span><span class="p">)</span>
-    <span class="n">g</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s">&#39;node_2&#39;</span><span class="p">,</span> <span class="s">&#39;node_3&#39;</span><span class="p">)</span>
-    <span class="n">g</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s">&#39;node_4&#39;</span><span class="p">,</span> <span class="s">&#39;node_2&#39;</span><span class="p">)</span>
-
-    <span class="n">g</span><span class="p">[</span><span class="s">&#39;node_2&#39;</span><span class="p">][</span><span class="s">&#39;node_1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;WHATEVER&#39;</span>
+    <span class="c"># g[&#39;node_2&#39;][&#39;node_1&#39;][0][&#39;class&#39;] = &#39;WHATEVER&#39;</span>
 
     <span class="c"># Let&#39;s enumerate the possible assignments</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">MultiDiGraph</span><span class="p">()</span>
     <span class="n">my_parser</span> <span class="o">=</span> <span class="n">CypherToNetworkx</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">matching_assignment</span> <span class="ow">in</span> <span class="n">my_parser</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">sample</span><span class="p">):</span>
-        <span class="k">print</span> <span class="n">matching_assignment</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">my_parser</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">create</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">i</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">my_parser</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">match</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">i</span>
+    <span class="kn">import</span> <span class="nn">pdb</span><span class="p">;</span> <span class="n">pdb</span><span class="o">.</span><span class="n">set_trace</span><span class="p">()</span>
 
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="c"># This main method is just for testing</span>

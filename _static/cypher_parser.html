@@ -133,6 +133,12 @@
   <div class="section" id="module-cypher_parser">
 <span id="cypher-parser-py"></span><h1>cypher_parser.py<a class="headerlink" href="#module-cypher_parser" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
+<dt id="cypher_parser.And">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">And</code><span class="sig-paren">(</span><em>left_conjunct</em>, <em>right_conjunct</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#And"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.And" title="Permalink to this definition">¶</a></dt>
+<dd><p>A conjunction</p>
+</dd></dl>
+
+<dl class="class">
 <dt id="cypher_parser.AtomicFact">
 <em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">AtomicFact</code><a class="reference internal" href="../_modules/cypher_parser.html#AtomicFact"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.AtomicFact" title="Permalink to this definition">¶</a></dt>
 <dd><p>All facts will inherit this class. Not really used yet.</p>
@@ -158,6 +164,18 @@ value.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="cypher_parser.Constraint">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">Constraint</code><span class="sig-paren">(</span><em>keypath</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#Constraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.Constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>For WHERE clauses</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.ConstraintList">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">ConstraintList</code><a class="reference internal" href="../_modules/cypher_parser.html#ConstraintList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.ConstraintList" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of Constraint objects</p>
+</dd></dl>
+
+<dl class="class">
 <dt id="cypher_parser.CreateQuery">
 <em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">CreateQuery</code><span class="sig-paren">(</span><em>literals</em>, <em>return_variables=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#CreateQuery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.CreateQuery" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class representing a CREATE... RETURN query, including cases
@@ -166,14 +184,14 @@ where the RETURN isn&#8217;t present.</p>
 
 <dl class="class">
 <dt id="cypher_parser.EdgeCondition">
-<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">EdgeCondition</code><span class="sig-paren">(</span><em>edge_label=None</em>, <em>direction=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#EdgeCondition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.EdgeCondition" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">EdgeCondition</code><span class="sig-paren">(</span><em>edge_label=None</em>, <em>direction=None</em>, <em>designation=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#EdgeCondition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.EdgeCondition" title="Permalink to this definition">¶</a></dt>
 <dd><p>Represents the constraint that an edge must have a specific
 label, or that it must be run in a specific direction.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="cypher_parser.EdgeExists">
-<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">EdgeExists</code><span class="sig-paren">(</span><em>node_1</em>, <em>node_2</em>, <em>edge_label=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#EdgeExists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.EdgeExists" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">EdgeExists</code><span class="sig-paren">(</span><em>node_1</em>, <em>node_2</em>, <em>designation=None</em>, <em>edge_label=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#EdgeExists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.EdgeExists" title="Permalink to this definition">¶</a></dt>
 <dd><p>The constraint that an edge exists between two nodes, possibly
 having a specific label.</p>
 </dd></dl>
@@ -187,7 +205,7 @@ literals).</p>
 
 <dl class="class">
 <dt id="cypher_parser.MatchReturnQuery">
-<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">MatchReturnQuery</code><span class="sig-paren">(</span><em>literals=None</em>, <em>return_variables=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#MatchReturnQuery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.MatchReturnQuery" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">MatchReturnQuery</code><span class="sig-paren">(</span><em>literals=None</em>, <em>return_variables=None</em>, <em>where_clause=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#MatchReturnQuery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.MatchReturnQuery" title="Permalink to this definition">¶</a></dt>
 <dd><p>A near top-level class representing any Cypher query of the form
 MATCH... RETURN</p>
 </dd></dl>
@@ -196,6 +214,18 @@ MATCH... RETURN</p>
 <dt id="cypher_parser.Node">
 <em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">Node</code><span class="sig-paren">(</span><em>node_class=None</em>, <em>designation=None</em>, <em>attribute_conditions=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#Node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.Node" title="Permalink to this definition">¶</a></dt>
 <dd><p>A node specification &#8211; a set of conditions and a designation.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.Not">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">Not</code><span class="sig-paren">(</span><em>argument</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#Not"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.Not" title="Permalink to this definition">¶</a></dt>
+<dd><p>Negation</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cypher_parser.Or">
+<em class="property">class </em><code class="descclassname">cypher_parser.</code><code class="descname">Or</code><span class="sig-paren">(</span><em>left_disjunct</em>, <em>right_disjunct</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#Or"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.Or" title="Permalink to this definition">¶</a></dt>
+<dd><p>A disjunction</p>
 </dd></dl>
 
 <dl class="exception">
@@ -217,7 +247,24 @@ with keypaths for attributes as well.</p>
 <code class="descclassname">cypher_parser.</code><code class="descname">p_condition</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_condition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_condition" title="Permalink to this definition">¶</a></dt>
 <dd><p>condition_list : KEY COLON STRING
 | condition_list COMMA condition_list
-| LCURLEY condition_list RCURLEY</p>
+| LCURLEY condition_list RCURLEY
+| KEY COLON condition_list</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_constraint">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_constraint</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_constraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>constraint : keypath EQUALS STRING</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_constraint_list">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_constraint_list</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_constraint_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_constraint_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>constraint_list : constraint
+| constraint_list AND constraint_list
+| constraint_list OR constraint_list
+| NOT constraint_list
+| LPAREN constraint_list RPAREN</p>
 </dd></dl>
 
 <dl class="function">
@@ -229,7 +276,8 @@ with keypaths for attributes as well.</p>
 <dl class="function">
 <dt id="cypher_parser.p_edge_condition">
 <code class="descclassname">cypher_parser.</code><code class="descname">p_edge_condition</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_edge_condition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_edge_condition" title="Permalink to this definition">¶</a></dt>
-<dd><p>edge_condition : LBRACKET COLON NAME RBRACKET</p>
+<dd><p>edge_condition : LBRACKET COLON NAME RBRACKET
+| LBRACKET KEY COLON NAME RBRACKET</p>
 </dd></dl>
 
 <dl class="function">
@@ -259,13 +307,15 @@ with keypaths for attributes as well.</p>
 <dd><p>literals : node_clause
 | literals COMMA literals
 | literals RIGHT_ARROW literals
+| literals LEFT_ARROW literals
 | literals labeled_edge literals</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="cypher_parser.p_match_return">
 <code class="descclassname">cypher_parser.</code><code class="descname">p_match_return</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_match_return"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_match_return" title="Permalink to this definition">¶</a></dt>
-<dd><p>match_return : MATCH literals return_variables</p>
+<dd><p>match_return : MATCH literals return_variables
+| MATCH literals where_clause return_variables</p>
 </dd></dl>
 
 <dl class="function">
@@ -283,6 +333,12 @@ with keypaths for attributes as well.</p>
 | RETURN keypath
 | return_variables COMMA KEY
 | return_variables COMMA keypath</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cypher_parser.p_where_clause">
+<code class="descclassname">cypher_parser.</code><code class="descname">p_where_clause</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cypher_parser.html#p_where_clause"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cypher_parser.p_where_clause" title="Permalink to this definition">¶</a></dt>
+<dd><p>where_clause : WHERE constraint_list</p>
 </dd></dl>
 
 </div>

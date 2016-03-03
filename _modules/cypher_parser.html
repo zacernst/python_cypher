@@ -162,14 +162,15 @@
 <div class="viewcode-block" id="EdgeCondition"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.EdgeCondition">[docs]</a><span class="k">class</span> <span class="nc">EdgeCondition</span><span class="p">(</span><span class="n">AtomicFact</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Represents the constraint that an edge must have a specific</span>
 <span class="sd">       label, or that it must be run in a specific direction.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edge_label</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">edge_label</span> <span class="o">=</span> <span class="n">edge_label</span></div>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edge_label</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">designation</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_label</span> <span class="o">=</span> <span class="n">edge_label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">designation</span> <span class="o">=</span> <span class="n">designation</span></div>
 
 
 <div class="viewcode-block" id="EdgeExists"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.EdgeExists">[docs]</a><span class="k">class</span> <span class="nc">EdgeExists</span><span class="p">(</span><span class="n">AtomicFact</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;The constraint that an edge exists between two nodes, possibly</span>
 <span class="sd">       having a specific label.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_1</span><span class="p">,</span> <span class="n">node_2</span><span class="p">,</span> <span class="n">edge_label</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_1</span><span class="p">,</span> <span class="n">node_2</span><span class="p">,</span> <span class="n">designation</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">edge_label</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">node_1</span> <span class="o">=</span> <span class="n">node_1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">node_2</span> <span class="o">=</span> <span class="n">node_2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edge_label</span> <span class="o">=</span> <span class="n">edge_label</span></div>
@@ -203,9 +204,11 @@
 <div class="viewcode-block" id="MatchReturnQuery"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.MatchReturnQuery">[docs]</a><span class="k">class</span> <span class="nc">MatchReturnQuery</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A near top-level class representing any Cypher query of the form</span>
 <span class="sd">       MATCH... RETURN&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">literals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">literals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">where_clause</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">literals</span> <span class="o">=</span> <span class="n">literals</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">return_variables</span> <span class="o">=</span> <span class="n">return_variables</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">return_variables</span> <span class="o">=</span> <span class="n">return_variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">where_clause</span> <span class="o">=</span> <span class="n">where_clause</span></div>
 
 
 <div class="viewcode-block" id="Literals"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.Literals">[docs]</a><span class="k">class</span> <span class="nc">Literals</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -229,6 +232,35 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">literals</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">literals</span> <span class="o">=</span> <span class="n">literals</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">return_variables</span> <span class="o">=</span> <span class="n">return_variables</span></div>
+
+
+<span class="k">class</span> <span class="nc">Constraint</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Class representing a constraint for use in a MATCH query. For</span>
+<span class="sd">       example, WHERE x.foo = &quot;bar&quot;&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keypath</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">relationship</span><span class="p">):</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">keypath</span> <span class="o">=</span> <span class="n">keypath</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">relationship</span> <span class="o">=</span> <span class="n">relationship</span>
+
+
+<div class="viewcode-block" id="And"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.And">[docs]</a><span class="k">class</span> <span class="nc">And</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;A conjunction&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left_conjunct</span><span class="p">,</span> <span class="n">right_conjunct</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">left_conjunct</span> <span class="o">=</span> <span class="n">left_conjunct</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">right_conjunct</span> <span class="o">=</span> <span class="n">right_conjunct</span></div>
+
+
+<div class="viewcode-block" id="Or"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.Or">[docs]</a><span class="k">class</span> <span class="nc">Or</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;A disjunction&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left_disjunct</span><span class="p">,</span> <span class="n">right_disjunct</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">left_disjunct</span> <span class="o">=</span> <span class="n">left_disjunct</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">right_disjunct</span> <span class="o">=</span> <span class="n">right_disjunct</span></div>
+
+
+<div class="viewcode-block" id="Not"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.Not">[docs]</a><span class="k">class</span> <span class="nc">Not</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Negation&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argument</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">argument</span> <span class="o">=</span> <span class="n">argument</span></div>
 
 
 <div class="viewcode-block" id="p_node_clause"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_node_clause">[docs]</a><span class="k">def</span> <span class="nf">p_node_clause</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
@@ -259,15 +291,54 @@
 <div class="viewcode-block" id="p_condition"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_condition">[docs]</a><span class="k">def</span> <span class="nf">p_condition</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;condition_list : KEY COLON STRING</span>
 <span class="sd">                      | condition_list COMMA condition_list</span>
-<span class="sd">                      | LCURLEY condition_list RCURLEY&#39;&#39;&#39;</span>
+<span class="sd">                      | LCURLEY condition_list RCURLEY</span>
+<span class="sd">                      | KEY COLON condition_list&#39;&#39;&#39;</span>
     <span class="k">global</span> <span class="n">atomic_facts</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;:&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;:&#39;</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)}</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;:&#39;</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]}</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;,&#39;</span><span class="p">:</span>
         <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="p_constraint"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_constraint">[docs]</a><span class="k">def</span> <span class="nf">p_constraint</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;constraint : keypath EQUALS STRING&#39;&#39;&#39;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="s">&#39;=&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Constraint"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.Constraint">[docs]</a><span class="k">class</span> <span class="nc">Constraint</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;For WHERE clauses&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keypath</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keypath</span> <span class="o">=</span> <span class="n">keypath</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ConstraintList"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.ConstraintList">[docs]</a><span class="k">class</span> <span class="nc">ConstraintList</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;A list of Constraint objects&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contraint_list</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="p_constraint_list"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_constraint_list">[docs]</a><span class="k">def</span> <span class="nf">p_constraint_list</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;constraint_list : constraint</span>
+<span class="sd">                       | constraint_list AND constraint_list</span>
+<span class="sd">                       | constraint_list OR constraint_list</span>
+<span class="sd">                       | NOT constraint_list</span>
+<span class="sd">                       | LPAREN constraint_list RPAREN&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ConstraintList</span><span class="p">()</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">list_of_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Constraint</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unhandled case in p_constraint_list.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="p_where_clause"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_where_clause">[docs]</a><span class="k">def</span> <span class="nf">p_where_clause</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;where_clause : WHERE constraint_list&#39;&#39;&#39;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span></div>
 
 
 <div class="viewcode-block" id="p_keypath"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_keypath">[docs]</a><span class="k">def</span> <span class="nf">p_keypath</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
@@ -284,8 +355,15 @@
 
 
 <div class="viewcode-block" id="p_edge_condition"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_edge_condition">[docs]</a><span class="k">def</span> <span class="nf">p_edge_condition</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;edge_condition : LBRACKET COLON NAME RBRACKET&#39;&#39;&#39;</span>
-    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">EdgeCondition</span><span class="p">(</span><span class="n">edge_label</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span></div>
+    <span class="sd">&#39;&#39;&#39;edge_condition : LBRACKET COLON NAME RBRACKET</span>
+<span class="sd">                      | LBRACKET KEY COLON NAME RBRACKET&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">t_COLON</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">EdgeCondition</span><span class="p">(</span><span class="n">edge_label</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="n">t_COLON</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">EdgeCondition</span><span class="p">(</span><span class="n">edge_label</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">designation</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unhandled case in p_edge_condition&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="p_labeled_edge"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_labeled_edge">[docs]</a><span class="k">def</span> <span class="nf">p_labeled_edge</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
@@ -298,13 +376,14 @@
         <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
         <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="s">&#39;right_left&#39;</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unhandled case in edge_condition.&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unhandled case in p_labeled_edge.&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="p_literals"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_literals">[docs]</a><span class="k">def</span> <span class="nf">p_literals</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;literals : node_clause</span>
 <span class="sd">                | literals COMMA literals</span>
 <span class="sd">                | literals RIGHT_ARROW literals</span>
+<span class="sd">                | literals LEFT_ARROW literals</span>
 <span class="sd">                | literals labeled_edge literals&#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">Literals</span><span class="p">(</span><span class="n">literal_list</span><span class="o">=</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
@@ -341,8 +420,15 @@
 
 
 <div class="viewcode-block" id="p_match_return"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_match_return">[docs]</a><span class="k">def</span> <span class="nf">p_match_return</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;match_return : MATCH literals return_variables&#39;&#39;&#39;</span>
-    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">MatchReturnQuery</span><span class="p">(</span><span class="n">literals</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">return_variables</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span></div>
+    <span class="sd">&#39;&#39;&#39;match_return : MATCH literals return_variables</span>
+<span class="sd">                    | MATCH literals where_clause return_variables&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">MatchReturnQuery</span><span class="p">(</span><span class="n">literals</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">return_variables</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">MatchReturnQuery</span><span class="p">(</span><span class="n">literals</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">return_variables</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+                                <span class="n">where_clause</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unhandled case in p_match_return.&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="p_create"><a class="viewcode-back" href="../_static/cypher_parser.html#cypher_parser.p_create">[docs]</a><span class="k">def</span> <span class="nf">p_create</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
