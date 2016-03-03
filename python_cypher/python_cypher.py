@@ -126,17 +126,18 @@ class CypherParserBaseClass(object):
                 # This just handles equality and no booleans yet.
                 # We'll add a boolean function to the head of each
                 # constraint_list
-                for constraint_list in [i for i in atomic_facts if isinstance(
-                        i, ConstraintList)]:
-                    for constraint in constraint_list.constraint_list:
+                # for constraint_list in [i for i in atomic_facts if isinstance(
+                #         i, ConstraintList)]:
+                #     for constraint in constraint_list.constraint_list:
                         # print constraint.__dict__
-                        node = graph_object.node[
-                            var_to_element[constraint.keypath[0]]]
-                        remaining_keypath = constraint.keypath[1:]
-                        value = self._attribute_value_from_node_keypath(
-                            node, remaining_keypath)
-                        if value != constraint.value:
-                            sentinal = False
+                #         node = graph_object.node[
+                #             var_to_element[constraint.keypath[0]]]
+                #         remaining_keypath = constraint.keypath[1:]
+                #         value = self._attribute_value_from_node_keypath(
+                #             node, remaining_keypath)
+                #         if value != constraint.value:
+                #             sentinal = False
+                pass
             if sentinal:
                 if PRINT_MATCHING_ASSIGNMENTS:
                     print var_to_element  # For debugging purposes only
@@ -287,11 +288,6 @@ def extract_atomic_facts(query):
         elif isinstance(subquery, Literals):   # Literals
             for literal in subquery.literal_list:
                 _recurse(literal)
-        elif isinstance(subquery, ConstraintList):  # ConstraintList
-            # Just add the ConstraintList because it's less "atomic" --
-            # it involves boolean combinations, so we can't effectively
-            # break it down into atoms, storing them separately.
-            _recurse.atomic_facts.append(subquery)
         elif isinstance(subquery, Node):       # Node
             _recurse.atomic_facts.append(ClassIs(subquery.designation,
                                                  subquery.node_class))
@@ -303,6 +299,8 @@ def extract_atomic_facts(query):
                         document=(subquery.attribute_conditions if
                                   len(subquery.attribute_conditions) > 0
                                   else None)))
+        elif isinstance(subquery, (Constraint, Or, Not,)):
+            pass
         else:
             print 'unhandled case in extract_atomic_facts:' + (
                 subquery.__class__.__name__)
@@ -319,7 +317,7 @@ def main():
     create = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
     create_query = 'CREATE (n:SOMECLASS)-->(m:ANOTHERCLASS) RETURN n'
-    test_query = 'MATCH (n:SOMECLASS) WHERE n.bar.qux = "baz" RETURN n'
+    test_query = 'MATCH (n:SOMECLASS) WHERE NOT n.bar.qux = "baz" RETURN n'
     atomic_facts = extract_atomic_facts(test_query)
     exit(0)
 
@@ -329,6 +327,7 @@ def main():
         print 'create:', i
     for i in my_parser.query(g, match):
         print 'match:', i
+
 
 if __name__ == '__main__':
     # This main method is just for testing
