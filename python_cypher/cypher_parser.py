@@ -8,6 +8,37 @@ next_anonymous_variable = 0
 start = 'full_query'
 
 
+def constraint_function(function_string):
+    """Translates a string in a WHERE clause into the appropriate
+       function. The function is stored as an attribute in the
+       ``Constraint`` object that's generated as the Cypher query
+       is parsed.
+    """
+    def _equals(arg1, arg2):
+        return arg1 == arg2
+
+    def _greater_than(arg1, arg2):
+        return arg1 > arg2
+
+    def _less_than(arg1, arg2):
+        return arg1 < arg2
+
+    def _greater_or_equal(arg1, arg2):
+        return arg1 >= arg2
+
+    def _less_or_equal(arg1, arg2):
+        return arg1 <= arg2
+
+    if function_string == '=':
+        return _equals
+    elif function_string == '>':
+        return _greater_than
+    elif function_string == '<':
+        return _less_than
+    elif function_string == '>=':
+        return _greater_or_equal
+
+
 class ParsingException(Exception):
     """A generic Exception class for the parser."""
     def __init__(self, msg):
@@ -96,10 +127,10 @@ class CreateQuery(object):
 class Constraint(object):
     '''Class representing a constraint for use in a MATCH query. For
        example, WHERE x.foo = "bar"'''
-    def __init__(self, keypath, value, relationship):
+    def __init__(self, keypath, value, function_string):
         self.keypath = keypath
         self.value = value
-        self.relationship = relationship
+        self.function = constraint_function(function_string)
 
 
 class Or(object):
@@ -113,14 +144,6 @@ class Not(object):
     '''Negation'''
     def __init__(self, argument):
         self.argument = argument
-
-
-class Constraint(object):
-    '''For WHERE clauses'''
-    def __init__(self, keypath, value, relation):
-        self.keypath = keypath
-        self.value = value
-        self.relation = relation
 
 
 def p_node_clause(p):
@@ -196,7 +219,7 @@ def p_keypath(p):
     elif len(p) == 4 and isinstance(p[1], list):
         p[1].append(p[3])
     else:
-        print 'unhandled case in keypath...'
+        raise Exception('unhandled case in keypath.')
     p[0] = p[1]
 
 
@@ -263,7 +286,7 @@ def p_literals(p):
         p[0].literal_list[-1].connecting_edges.append(edge_fact)
         p[0].literal_list += p[3].literal_list
     else:
-        print 'unhandled case in literals...'
+        raise Exception('unhandled case in p_literals')
 
 
 def p_match_return(p):

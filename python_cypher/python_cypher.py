@@ -13,6 +13,25 @@ PRINT_TOKENS = False
 PRINT_MATCHING_ASSIGNMENTS = False
 
 
+def constraint_function(function_string):
+    def _equals(x, y):
+        return x == y
+    def _greater_than(x, y):
+        return x > y
+    def _less_than(x, y):
+        return x < y
+    def _greater_or_equal(x, y):
+        return x >= y
+    if function_string == '=':
+        return _equals
+    elif function_string == '>':
+        return _greater_than
+    elif function_string == '<':
+        return _less_than
+    elif function_string == '>=':
+        return _greater_or_equal
+
+
 class CypherParserBaseClass(object):
     """Base class that specific parsers will inherit from. Certain methods
        must be defined in the child class. See the docs."""
@@ -94,7 +113,6 @@ class CypherParserBaseClass(object):
                     desired_class = atomic_fact.class_name
                     if var_class != desired_class:
                         sentinal = False
-                        print 'failed ClassIs'
                 # Replace `AttributeHasValue` with `ConstraintList`, and do
                 # the recursive checks against the variable assignment
                 elif isinstance(atomic_fact, AttributeHasValue):
@@ -107,7 +125,6 @@ class CypherParserBaseClass(object):
                         attribute)
                     if value != desired_value:
                         sentinal = False
-                        print 'failed AttributeHasValue'
                 elif isinstance(atomic_fact, EdgeExists):
                     if not any((self._edge_class(connecting_edge) ==
                                 atomic_fact.edge_label)
@@ -117,10 +134,17 @@ class CypherParserBaseClass(object):
                                    var_to_element[atomic_fact.node_1],
                                    var_to_element[atomic_fact.node_2])):
                         sentinal = False
-                        print 'failed EdgeExists'
             if sentinal:
-                print 'sentinal...'
-            if sentinal:
+                def _eval_boolean(clause):
+                    """Recursive function to evaluate WHERE clauses. ``Or``
+                       and ``Not`` classes inherit from ``Constraint``."""
+                    if isinstance(clause, Or):
+                        return (_eval_boolean(clause.left_disjunct) or
+                                _eval_boolean(clause.right_disjunct))
+                    elif isinstance(clause, Not):
+                        return not _eval_boolean(clause.argument)
+                    elif isinstance(clause, Constraint):
+                        pass
                 # So far, we haven't checked the "WHERE" clause.
                 # This just handles equality and no booleans yet.
                 # We'll add a boolean function to the head of each
@@ -296,8 +320,8 @@ def extract_atomic_facts(query):
         elif isinstance(subquery, (Constraint, Or, Not,)):
             _recurse.atomic_facts.append(subquery)
         else:
-            print 'unhandled case in extract_atomic_facts:' + (
-                subquery.__class__.__name__)
+            raise Exception('unhandled case in extract_atomic_facts:' + (
+                subquery.__class__.__name__))
     _recurse.atomic_facts = []
     _recurse.next_anonymous_variable = 0
     _recurse(query)
@@ -314,14 +338,9 @@ def main():
     create_query = 'CREATE (n:SOMECLASS)-->(m:ANOTHERCLASS) RETURN n'
     test_query = 'MATCH (:SOMENODECLASS)-->(:SOMECLASS)-->(m:ANOTHERCLASS) WHERE NOT n.bar.qux = "baz" RETURN n'
     atomic_facts = extract_atomic_facts(test_query)
-
     g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
     return atomic_facts
-    for i in my_parser.query(g, create):
-        print 'create:', i
-    for i in my_parser.query(g, match):
-        print 'match:', i
 
 
 if __name__ == '__main__':
