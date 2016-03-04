@@ -145,10 +145,6 @@ class CypherParserBaseClass(object):
                         return not _eval_boolean(clause.argument)
                     elif isinstance(clause, Constraint):
                         pass
-                # So far, we haven't checked the "WHERE" clause.
-                # This just handles equality and no booleans yet.
-                # We'll add a boolean function to the head of each
-                # constraint_list
                 pass
             if sentinal:
                 if PRINT_MATCHING_ASSIGNMENTS:
@@ -317,7 +313,7 @@ def extract_atomic_facts(query):
                                   else None)))
             if hasattr(subquery, 'foobarthingy'):
                 pass
-        elif isinstance(subquery, (Constraint, Or, Not,)):
+        elif isinstance(subquery, WhereClause):
             _recurse.atomic_facts.append(subquery)
         else:
             raise Exception('unhandled case in extract_atomic_facts:' + (

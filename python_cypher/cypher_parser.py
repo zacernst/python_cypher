@@ -146,6 +146,12 @@ class Not(object):
         self.argument = argument
 
 
+class WhereClause(object):
+    '''WHERE clause'''
+    def __init__(self, constraint):
+        self.constraint = constraint
+
+
 def p_node_clause(p):
     '''node_clause : LPAREN COLON NAME RPAREN
                    | LPAREN KEY COLON NAME RPAREN
@@ -205,7 +211,7 @@ def p_constraint(p):
 def p_where_clause(p):
     '''where_clause : WHERE constraint'''
     if isinstance(p[2], (Constraint, Or, Not,)):
-        p[0] = p[2]
+        p[0] = WhereClause(p[2])
     else:
         raise Exception("Unhandled case in p_where_clause.")
 
