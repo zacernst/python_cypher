@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+This script contains the ``CypherParserBaseClass``, which provides the basic
+functionality to parse Cypher queries and run them against graphs.
+"""
 
 import itertools
 import networkx as nx
@@ -11,25 +15,6 @@ from cypher_parser import *
 
 PRINT_TOKENS = False
 PRINT_MATCHING_ASSIGNMENTS = False
-
-
-def constraint_function(function_string):
-    def _equals(x, y):
-        return x == y
-    def _greater_than(x, y):
-        return x > y
-    def _less_than(x, y):
-        return x < y
-    def _greater_or_equal(x, y):
-        return x >= y
-    if function_string == '=':
-        return _equals
-    elif function_string == '>':
-        return _greater_than
-    elif function_string == '<':
-        return _less_than
-    elif function_string == '>=':
-        return _greater_or_equal
 
 
 class CypherParserBaseClass(object):
@@ -54,7 +39,6 @@ class CypherParserBaseClass(object):
            been transformed to its AST. This function routes the parsed
            query to a smaller number of high-level functions for handing
            specific types of queries (e.g. MATCH, CREATE, ...)"""
-        # import pdb; pdb.set_trace()
         parsed_query = self.parse(query_string)
         if isinstance(parsed_query, MatchReturnQuery):
             for match in self.matching_nodes(graph_object, parsed_query):
@@ -68,6 +52,7 @@ class CypherParserBaseClass(object):
         """For executing queries of the form CREATE... RETURN."""
         designation_to_node = {}
         designation_to_edge = {}
+        atomic_facts = extract_atomic_facts(parsed_query)
         for literal in parsed_query.literals.literal_list:
             designation_to_node[literal.designation] = self._create_node(
                 graph_object, literal.node_class,
@@ -101,7 +86,6 @@ class CypherParserBaseClass(object):
             # Not sure if element_to_var will be useful
             # element_to_var = {
             #     v: k for k, v in var_to_element.iteritems()}
-            # print 'checking assignment:', var_to_element
             sentinal = True
             for atomic_fact in atomic_facts:
                 if isinstance(atomic_fact, ClassIs):
@@ -115,7 +99,7 @@ class CypherParserBaseClass(object):
                         sentinal = False
                 # Replace `AttributeHasValue` with `ConstraintList`, and do
                 # the recursive checks against the variable assignment
-                elif isinstance(atomic_fact, AttributeHasValue):
+                elif isinstance(atomic_fact, MatchReturnQuery):
                     attribute = atomic_fact.attribute
                     desired_value = atomic_fact.value
                     value = self._node_attribute_value(
@@ -134,6 +118,18 @@ class CypherParserBaseClass(object):
                                    var_to_element[atomic_fact.node_1],
                                    var_to_element[atomic_fact.node_2])):
                         sentinal = False
+                elif (isinstance(atomic_fact, NodeHasDocument) and
+                      atomic_fact.document is not None):
+                    print 'node has document...'
+                elif (isinstance(atomic_fact, NodeHasDocument) and
+                      atomic_fact.document is None):
+                    # Empty document, no check needed. We catch this case
+                    # because we're using ``else`` to identify unhandled
+                    # cases.
+                    pass
+                else:
+                    import pdb; pdb.set_trace()
+                    raise Exception("Unhandled case in match_query.")
             if sentinal:
                 def _eval_boolean(clause):
                     """Recursive function to evaluate WHERE clauses. ``Or``
@@ -225,8 +221,9 @@ class CypherToNetworkx(CypherParserBaseClass):
                         attribute, node))
         return out
 
-    def _attribute_value_from_node_keypath(self, node, keypath):
-        value = node
+    def _attribute_value_from_node_keypath(self, graph_object, keypath):
+        value = _get_node(graph_object, keypath[0])
+        keypath = keypath[1:]
         for key in keypath:
             value = value[key]
         return value
@@ -284,7 +281,8 @@ def unique_id():
 
 def extract_atomic_facts(query):
     my_parser = CypherToNetworkx()
-    query = my_parser.parse(query)
+    if isinstance(query, str):
+        query = my_parser.parse(query)
 
     def _recurse(subquery):
         if subquery is None:
@@ -298,8 +296,11 @@ def extract_atomic_facts(query):
             for literal in subquery.literal_list:
                 _recurse(literal)
         elif isinstance(subquery, Node):
-            if not hasattr(subquery, 'designation') or subquery.designation is None:
-                subquery.designation = '_v' + str(_recurse.next_anonymous_variable)
+            if (
+                not hasattr(subquery, 'designation') or
+                    subquery.designation is None):
+                subquery.designation = '_v' + str(
+                    _recurse.next_anonymous_variable)
                 subquery.next_anonymous_variable += 1
             _recurse.atomic_facts.append(ClassIs(subquery.designation,
                                                  subquery.node_class))
@@ -311,7 +312,7 @@ def extract_atomic_facts(query):
                         document=(subquery.attribute_conditions if
                                   len(subquery.attribute_conditions) > 0
                                   else None)))
-            if hasattr(subquery, 'foobarthingy'):
+            if hasattr(subquery, 'foobarthingy'):  # Extract edge facts here
                 pass
         elif isinstance(subquery, WhereClause):
             _recurse.atomic_facts.append(subquery)
@@ -333,9 +334,16 @@ def main():
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
     create_query = 'CREATE (n:SOMECLASS)-->(m:ANOTHERCLASS) RETURN n'
     test_query = 'MATCH (:SOMENODECLASS)-->(:SOMECLASS)-->(m:ANOTHERCLASS) WHERE NOT n.bar.qux = "baz" RETURN n'
+    simple_test_query = 'MATCH (n:SOMECLASS)-->(m:ANOTHERCLASS) RETURN n, m'
     atomic_facts = extract_atomic_facts(test_query)
     g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
+    for result in my_parser.query(g, create_query):
+        print result
+    for result in my_parser.query(g, simple_test_query):
+        print result
+    import pdb; pdb.set_trace()
+    my_parser.query(g, test_query)
     return atomic_facts
 
 
