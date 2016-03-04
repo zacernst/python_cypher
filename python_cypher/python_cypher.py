@@ -13,7 +13,6 @@ PRINT_TOKENS = False
 PRINT_MATCHING_ASSIGNMENTS = False
 
 
-
 class CypherParserBaseClass(object):
     """Base class that specific parsers will inherit from. Certain methods
        must be defined in the child class. See the docs."""
@@ -126,17 +125,6 @@ class CypherParserBaseClass(object):
                 # This just handles equality and no booleans yet.
                 # We'll add a boolean function to the head of each
                 # constraint_list
-                # for constraint_list in [i for i in atomic_facts if isinstance(
-                #         i, ConstraintList)]:
-                #     for constraint in constraint_list.constraint_list:
-                        # print constraint.__dict__
-                #         node = graph_object.node[
-                #             var_to_element[constraint.keypath[0]]]
-                #         remaining_keypath = constraint.keypath[1:]
-                #         value = self._attribute_value_from_node_keypath(
-                #             node, remaining_keypath)
-                #         if value != constraint.value:
-                #             sentinal = False
                 pass
             if sentinal:
                 if PRINT_MATCHING_ASSIGNMENTS:
@@ -277,6 +265,7 @@ def unique_id():
 def extract_atomic_facts(query):
     my_parser = CypherToNetworkx()
     query = my_parser.parse(query)
+
     def _recurse(subquery):
         if subquery is None:
             return
@@ -288,7 +277,10 @@ def extract_atomic_facts(query):
         elif isinstance(subquery, Literals):   # Literals
             for literal in subquery.literal_list:
                 _recurse(literal)
-        elif isinstance(subquery, Node):       # Node
+        elif isinstance(subquery, Node):
+            if not hasattr(subquery, 'designation') or subquery.designation is None:
+                subquery.designation = '_v' + str(_recurse.next_anonymous_variable)
+                subquery.next_anonymous_variable += 1
             _recurse.atomic_facts.append(ClassIs(subquery.designation,
                                                  subquery.node_class))
             _recurse.atomic_facts += subquery.connecting_edges
@@ -299,12 +291,15 @@ def extract_atomic_facts(query):
                         document=(subquery.attribute_conditions if
                                   len(subquery.attribute_conditions) > 0
                                   else None)))
+            if hasattr(subquery, 'foobarthingy'):
+                pass
         elif isinstance(subquery, (Constraint, Or, Not,)):
-            pass
+            _recurse.atomic_facts.append(subquery)
         else:
             print 'unhandled case in extract_atomic_facts:' + (
                 subquery.__class__.__name__)
     _recurse.atomic_facts = []
+    _recurse.next_anonymous_variable = 0
     _recurse(query)
     return _recurse.atomic_facts
 
@@ -317,12 +312,12 @@ def main():
     create = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
     create_query = 'CREATE (n:SOMECLASS)-->(m:ANOTHERCLASS) RETURN n'
-    test_query = 'MATCH (n:SOMECLASS) WHERE NOT n.bar.qux = "baz" RETURN n'
+    test_query = 'MATCH (:SOMENODECLASS)-->(:SOMECLASS)-->(m:ANOTHERCLASS) WHERE NOT n.bar.qux = "baz" RETURN n'
     atomic_facts = extract_atomic_facts(test_query)
-    exit(0)
 
     g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
+    return atomic_facts
     for i in my_parser.query(g, create):
         print 'create:', i
     for i in my_parser.query(g, match):
@@ -331,4 +326,4 @@ def main():
 
 if __name__ == '__main__':
     # This main method is just for testing
-    main()
+    atomic_facts = main()
