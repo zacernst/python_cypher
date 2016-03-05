@@ -18,7 +18,7 @@ PRINT_MATCHING_ASSIGNMENTS = False
 
 
 class CypherParserBaseClass(object):
-    """Base class that specific parsers will inherit from. Certain methods
+    """The base class that specific parsers will inherit from. Certain methods
        must be defined in the child class. See the docs."""
     def __init__(self):
         self.tokenizer = cypher_tokenizer
