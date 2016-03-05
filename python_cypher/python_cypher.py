@@ -9,27 +9,8 @@ import time
 from cypher_tokenizer import *
 from cypher_parser import *
 
-PRINT_TOKENS = False
+PRINT_TOKENS = True
 PRINT_MATCHING_ASSIGNMENTS = False
-
-
-def constraint_function(function_string):
-    def _equals(x, y):
-        return x == y
-    def _greater_than(x, y):
-        return x > y
-    def _less_than(x, y):
-        return x < y
-    def _greater_or_equal(x, y):
-        return x >= y
-    if function_string == '=':
-        return _equals
-    elif function_string == '>':
-        return _greater_than
-    elif function_string == '<':
-        return _less_than
-    elif function_string == '>=':
-        return _greater_or_equal
 
 
 class CypherParserBaseClass(object):
@@ -54,7 +35,6 @@ class CypherParserBaseClass(object):
            been transformed to its AST. This function routes the parsed
            query to a smaller number of high-level functions for handing
            specific types of queries (e.g. MATCH, CREATE, ...)"""
-        # import pdb; pdb.set_trace()
         parsed_query = self.parse(query_string)
         if isinstance(parsed_query, MatchReturnQuery):
             for match in self.matching_nodes(graph_object, parsed_query):
@@ -66,6 +46,7 @@ class CypherParserBaseClass(object):
 
     def create_query(self, graph_object, parsed_query):
         """For executing queries of the form CREATE... RETURN."""
+        atomic_facts = extract_atomic_facts(parsed_query)
         designation_to_node = {}
         designation_to_edge = {}
         for literal in parsed_query.literals.literal_list:
@@ -93,11 +74,13 @@ class CypherParserBaseClass(object):
         all_designations = sorted(list(all_designations))
 
         domain = self._get_domain(graph_object)
-        # print graph_object.node
+        print graph_object.node
+        print domain
         for domain_assignment in itertools.product(
                 *[domain] * len(all_designations)):
             var_to_element = {all_designations[index]: element for index,
                               element in enumerate(domain_assignment)}
+            print var_to_element
             # Not sure if element_to_var will be useful
             # element_to_var = {
             #     v: k for k, v in var_to_element.iteritems()}
@@ -113,18 +96,6 @@ class CypherParserBaseClass(object):
                     desired_class = atomic_fact.class_name
                     if var_class != desired_class:
                         sentinal = False
-                # Replace `AttributeHasValue` with `ConstraintList`, and do
-                # the recursive checks against the variable assignment
-                elif isinstance(atomic_fact, AttributeHasValue):
-                    attribute = atomic_fact.attribute
-                    desired_value = atomic_fact.value
-                    value = self._node_attribute_value(
-                        self._get_node(
-                            graph_object,
-                            var_to_element[atomic_fact.designation]),
-                        attribute)
-                    if value != desired_value:
-                        sentinal = False
                 elif isinstance(atomic_fact, EdgeExists):
                     if not any((self._edge_class(connecting_edge) ==
                                 atomic_fact.edge_label)
@@ -134,18 +105,21 @@ class CypherParserBaseClass(object):
                                    var_to_element[atomic_fact.node_1],
                                    var_to_element[atomic_fact.node_2])):
                         sentinal = False
-            if sentinal:
-                def _eval_boolean(clause):
-                    """Recursive function to evaluate WHERE clauses. ``Or``
-                       and ``Not`` classes inherit from ``Constraint``."""
-                    if isinstance(clause, Or):
-                        return (_eval_boolean(clause.left_disjunct) or
-                                _eval_boolean(clause.right_disjunct))
-                    elif isinstance(clause, Not):
-                        return not _eval_boolean(clause.argument)
-                    elif isinstance(clause, Constraint):
+                elif isinstance(atomic_fact, WhereClause):
+                    def _eval_constraint(constraint):
+                        import pdb; pdb.set_trace()
                         pass
-                pass
+                    def _eval_boolean(clause):
+                        """Recursive function to evaluate WHERE clauses. ``Or``
+                           and ``Not`` classes inherit from ``Constraint``."""
+                        if isinstance(clause, Or):
+                            return (_eval_boolean(clause.left_disjunct) or
+                                    _eval_boolean(clause.right_disjunct))
+                        elif isinstance(clause, Not):
+                            return not _eval_boolean(clause.argument)
+                        elif isinstance(clause, Constraint):
+                            return _eval_constraint(clause)
+                    _eval_boolean(atomic_fact.constraint)
             if sentinal:
                 if PRINT_MATCHING_ASSIGNMENTS:
                     print var_to_element  # For debugging purposes only
@@ -284,7 +258,8 @@ def unique_id():
 
 def extract_atomic_facts(query):
     my_parser = CypherToNetworkx()
-    query = my_parser.parse(query)
+    if isinstance(query, str):
+        query = my_parser.parse(query)
 
     def _recurse(subquery):
         if subquery is None:
@@ -336,9 +311,13 @@ def main():
     atomic_facts = extract_atomic_facts(test_query)
     g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
+    for i in my_parser.query(g, create_query):
+        print i
+    for i in my_parser.query(g, test_query):
+        print i
     return atomic_facts
 
 
 if __name__ == '__main__':
     # This main method is just for testing
-    atomic_facts = main()
+    out = main()
