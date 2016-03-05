@@ -40,7 +40,7 @@ class CypherParserBaseClass(object):
            query to a smaller number of high-level functions for handing
            specific types of queries (e.g. MATCH, CREATE, ...)"""
         parsed_query = self.parse(query_string)
-        if isinstance(parsed_query, MatchReturnQuery):
+        if isinstance(parsed_query, MatchQuery):
             for match in self.matching_nodes(graph_object, parsed_query):
                 yield match
         elif isinstance(parsed_query, CreateQuery):
@@ -277,7 +277,7 @@ def extract_atomic_facts(query):
     def _recurse(subquery):
         if subquery is None:
             return
-        elif isinstance(subquery, MatchReturnQuery):
+        elif isinstance(subquery, MatchQuery):
             _recurse(subquery.literals)
             _recurse(subquery.where_clause)
         elif isinstance(subquery, CreateQuery):  # CreateQuery
@@ -321,13 +321,13 @@ def main():
 
     create = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
-    create_query = 'CREATE (n:SOMECLASS {foo: {goo: "bar"}})-->(m:ANOTHERCLASS) RETURN n'
-    test_query = 'MATCH (n:SOMECLASS) WHERE NOT (n.foo.goo = "baz" AND n.foo = "bar") RETURN n.foo.goo'
+    create_query = 'CREATE (n:SOMECLASS {foo: "bar"})-->(m:ANOTHERCLASS) RETURN n'
+    test_query = 'MATCH (n:SOMECLASS) WHERE n.foo = "bar" RETURN n.foo'
     atomic_facts = extract_atomic_facts(test_query)
     g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
-    for i in my_parser.query(g, create_query):
-        pass  # a generator, we need to loop over results to run.
+    # for i in my_parser.query(g, create_query):
+    #     pass  # a generator, we need to loop over results to run.
     for i in my_parser.query(g, test_query):
         print i  # also a generator
     return atomic_facts
