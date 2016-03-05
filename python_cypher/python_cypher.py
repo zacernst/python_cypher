@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+This script contains the ``CypherParserBaseClass``, wich provides the basic
+functionality to parse Cypher queries and run them against graphs.
+"""
 
 import itertools
 import networkx as nx
