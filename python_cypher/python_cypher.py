@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This script contains the ``CypherParserBaseClass``, wich provides the basic
+This script contains the ``CypherParserBaseClass``, which provides the basic
 functionality to parse Cypher queries and run them against graphs.
 """
 
@@ -13,7 +13,7 @@ import time
 from cypher_tokenizer import *
 from cypher_parser import *
 
-PRINT_TOKENS = True
+PRINT_TOKENS = False
 PRINT_MATCHING_ASSIGNMENTS = False
 
 
@@ -69,6 +69,28 @@ class CypherParserBaseClass(object):
 
     def matching_nodes(self, graph_object, parsed_query):
         """For executing queries of the form MATCH... [WHERE...] RETURN..."""
+
+        def _eval_constraint(constraint):
+            """This is the basis case for the recursive check
+               on WHERE clauses."""
+            value = self._attribute_value_from_node_keypath(
+                self._get_node(
+                    graph_object,
+                    var_to_element[constraint.keypath[0]]),
+                constraint.keypath[1:])
+            return value == constraint.value
+
+        def _eval_boolean(clause):
+            """Recursive function to evaluate WHERE clauses. ``Or``
+               and ``Not`` classes inherit from ``Constraint``."""
+            if isinstance(clause, Or):
+                return (_eval_boolean(clause.left_disjunct) or
+                        _eval_boolean(clause.right_disjunct))
+            elif isinstance(clause, Not):
+                return not _eval_boolean(clause.argument)
+            elif isinstance(clause, Constraint):
+                return _eval_constraint(clause)
+
         all_designations = set()
         # Track down atomic_facts from outer scope.
         atomic_facts = extract_atomic_facts(parsed_query)
@@ -78,13 +100,10 @@ class CypherParserBaseClass(object):
         all_designations = sorted(list(all_designations))
 
         domain = self._get_domain(graph_object)
-        print graph_object.node
-        print domain
         for domain_assignment in itertools.product(
                 *[domain] * len(all_designations)):
             var_to_element = {all_designations[index]: element for index,
                               element in enumerate(domain_assignment)}
-            print var_to_element
             # Not sure if element_to_var will be useful
             # element_to_var = {
             #     v: k for k, v in var_to_element.iteritems()}
@@ -110,20 +129,9 @@ class CypherParserBaseClass(object):
                                    var_to_element[atomic_fact.node_2])):
                         sentinal = False
                 elif isinstance(atomic_fact, WhereClause):
-                    def _eval_constraint(constraint):
-                        import pdb; pdb.set_trace()
-                        pass
-                    def _eval_boolean(clause):
-                        """Recursive function to evaluate WHERE clauses. ``Or``
-                           and ``Not`` classes inherit from ``Constraint``."""
-                        if isinstance(clause, Or):
-                            return (_eval_boolean(clause.left_disjunct) or
-                                    _eval_boolean(clause.right_disjunct))
-                        elif isinstance(clause, Not):
-                            return not _eval_boolean(clause.argument)
-                        elif isinstance(clause, Constraint):
-                            return _eval_constraint(clause)
-                    _eval_boolean(atomic_fact.constraint)
+
+                    sentinal = sentinal & _eval_boolean(atomic_fact.constraint)
+
             if sentinal:
                 if PRINT_MATCHING_ASSIGNMENTS:
                     print var_to_element  # For debugging purposes only
@@ -206,15 +214,16 @@ class CypherToNetworkx(CypherParserBaseClass):
     def _attribute_value_from_node_keypath(self, node, keypath):
         value = node
         for key in keypath:
-            value = value[key]
+            try:
+                value = value[key]
+            except (KeyError, TypeError,):
+                return None
         return value
 
     def _edge_exists(self, graph_obj, source, target,
                      edge_class=None, directed=True):
         sentinal = True
-        if source not in g.edge or target not in g.edge[source]:
-            sentinal = False
-        return sentinal
+        raise NotImplementedError("Haven't finished _edge_exists.")
 
     def _edges_connecting_nodes(self, graph_object, source, target):
         try:
@@ -277,8 +286,10 @@ def extract_atomic_facts(query):
             for literal in subquery.literal_list:
                 _recurse(literal)
         elif isinstance(subquery, Node):
-            if not hasattr(subquery, 'designation') or subquery.designation is None:
-                subquery.designation = '_v' + str(_recurse.next_anonymous_variable)
+            if (not hasattr(subquery, 'designation') or
+                    subquery.designation is None):
+                subquery.designation = (
+                    '_v' + str(_recurse.next_anonymous_variable))
                 subquery.next_anonymous_variable += 1
             _recurse.atomic_facts.append(ClassIs(subquery.designation,
                                                  subquery.node_class))
@@ -310,13 +321,13 @@ def main():
 
     create = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
-    create_query = 'CREATE (n:SOMECLASS)-->(m:ANOTHERCLASS) RETURN n'
-    test_query = 'MATCH (:SOMENODECLASS)-->(:SOMECLASS)-->(m:ANOTHERCLASS) WHERE NOT n.bar.qux = "baz" RETURN n'
+    create_query = 'CREATE (n:SOMECLASS {foo:"bar"})-->(m:ANOTHERCLASS) RETURN n'
+    test_query = 'MATCH (n:SOMECLASS) WHERE NOT n.foo = "baz" RETURN n.foo'
     atomic_facts = extract_atomic_facts(test_query)
     g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
     for i in my_parser.query(g, create_query):
-        print i
+        pass  # Because it's a generator
     for i in my_parser.query(g, test_query):
         print i
     return atomic_facts
