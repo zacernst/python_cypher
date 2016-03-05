@@ -129,61 +129,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-python_cypher">
-<span id="python-cypher-py"></span><h1>python_cypher.py<a class="headerlink" href="#module-python_cypher" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="python_cypher.CypherParserBaseClass">
-<em class="property">class </em><code class="descclassname">python_cypher.</code><code class="descname">CypherParserBaseClass</code><a class="reference internal" href="../_modules/python_cypher.html#CypherParserBaseClass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#python_cypher.CypherParserBaseClass" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base class that specific parsers will inherit from. Certain methods
-must be defined in the child class. See the docs.</p>
-<dl class="method">
-<dt id="python_cypher.CypherParserBaseClass.create_query">
-<code class="descname">create_query</code><span class="sig-paren">(</span><em>graph_object</em>, <em>parsed_query</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/python_cypher.html#CypherParserBaseClass.create_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#python_cypher.CypherParserBaseClass.create_query" title="Permalink to this definition">¶</a></dt>
-<dd><p>For executing queries of the form CREATE... RETURN.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="python_cypher.CypherParserBaseClass.matching_nodes">
-<code class="descname">matching_nodes</code><span class="sig-paren">(</span><em>graph_object</em>, <em>parsed_query</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/python_cypher.html#CypherParserBaseClass.matching_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#python_cypher.CypherParserBaseClass.matching_nodes" title="Permalink to this definition">¶</a></dt>
-<dd><p>For executing queries of the form MATCH... [WHERE...] RETURN...</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="python_cypher.CypherParserBaseClass.parse">
-<code class="descname">parse</code><span class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/python_cypher.html#CypherParserBaseClass.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#python_cypher.CypherParserBaseClass.parse" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls yacc to parse the query string into an AST.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="python_cypher.CypherParserBaseClass.query">
-<code class="descname">query</code><span class="sig-paren">(</span><em>graph_object</em>, <em>query_string</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/python_cypher.html#CypherParserBaseClass.query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#python_cypher.CypherParserBaseClass.query" title="Permalink to this definition">¶</a></dt>
-<dd><p>Top-level function that&#8217;s called by the parser when a query has
-been transformed to its AST. This function routes the parsed
-query to a smaller number of high-level functions for handing
-specific types of queries (e.g. MATCH, CREATE, ...)</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="python_cypher.CypherToNetworkx">
-<em class="property">class </em><code class="descclassname">python_cypher.</code><code class="descname">CypherToNetworkx</code><a class="reference internal" href="../_modules/python_cypher.html#CypherToNetworkx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#python_cypher.CypherToNetworkx" title="Permalink to this definition">¶</a></dt>
-<dd><p>Child class inheriting from <code class="docutils literal"><span class="pre">CypherParserBaseClass</span></code> to hook up
-Cypher functionality to NetworkX.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="python_cypher.random_hash">
-<code class="descclassname">python_cypher.</code><code class="descname">random_hash</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/python_cypher.html#random_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#python_cypher.random_hash" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a random hash for naming new nods and edges.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="python_cypher.unique_id">
-<code class="descclassname">python_cypher.</code><code class="descname">unique_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/python_cypher.html#unique_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#python_cypher.unique_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>Call <code class="docutils literal"><span class="pre">random_hash</span></code> and prepend <code class="docutils literal"><span class="pre">_id_</span></code> to it.</p>
-</dd></dl>
-
+  <div class="section" id="python-cypher-py">
+<h1>python_cypher.py<a class="headerlink" href="#python-cypher-py" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
