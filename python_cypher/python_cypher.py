@@ -321,15 +321,15 @@ def main():
 
     create = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
-    create_query = 'CREATE (n:SOMECLASS {foo:"bar"})-->(m:ANOTHERCLASS) RETURN n'
-    test_query = 'MATCH (n:SOMECLASS) WHERE NOT n.foo = "baz" RETURN n.foo'
+    create_query = 'CREATE (n:SOMECLASS {foo: {goo: "bar"}})-->(m:ANOTHERCLASS) RETURN n'
+    test_query = 'MATCH (n:SOMECLASS) WHERE NOT (n.foo.goo = "baz" AND n.foo = "bar") RETURN n.foo.goo'
     atomic_facts = extract_atomic_facts(test_query)
     g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
     for i in my_parser.query(g, create_query):
-        pass  # Because it's a generator
+        pass  # a generator, we need to loop over results to run.
     for i in my_parser.query(g, test_query):
-        print i
+        print i  # also a generator
     return atomic_facts
 
 

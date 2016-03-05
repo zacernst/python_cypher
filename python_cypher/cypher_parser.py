@@ -190,19 +190,20 @@ def p_condition(p):
 def p_constraint(p):
     '''constraint : keypath EQUALS STRING
                   | constraint OR constraint
+                  | constraint AND constraint
                   | NOT constraint
                   | LPAREN constraint RPAREN'''
     if p[2] == '=':
-        p[0] = Constraint(p[1], p[3], t_EQUALS)
+        p[0] = Constraint(p[1], p[3], '=')
     elif p[2] == '>':
-        p[0] = Constraint(p[1], p[3], t_GREATERTHAN)
+        p[0] = Constraint(p[1], p[3], '>')
     elif p[2] == 'OR':
         p[0] = Or(p[1], p[3])
     elif p[2] == 'AND':
-        p[0] = Not(Or(p[1]), Not(p[3]))
+        p[0] = Not(Or(Not(p[1]), Not(p[3])))
     elif p[1] == 'NOT':
         p[0] = Not(p[2])
-    elif p[1] == t_LPAREN:
+    elif p[1] == '(':
         p[0] = p[2]
     else:
         raise Exception("Unhandled case in p_constraint.")
