@@ -336,7 +336,7 @@ def p_full_query(p):
     elif isinstance(p[1], MatchQuery) and isinstance(p[2], ReturnVariables):
         p[0] = MatchWhereReturnQuery(match_clause=p[1],
                                      where_clause=None,
-                                     return_variables=p[3])
+                                     return_variables=p[2])
     elif isinstance(p[1], CreateClause):
         p[0] = CreateReturnQuery(create_clause=p[1], return_variables=p[2])
     else:
