@@ -43,7 +43,7 @@ class CypherParserBaseClass(object):
         if isinstance(parsed_query, MatchWhereReturnQuery):
             for match in self.matching_nodes(graph_object, parsed_query):
                 yield match
-        elif isinstance(parsed_query, CreateQuery):
+        elif isinstance(parsed_query, CreateReturnQuery):
             self.create_query(graph_object, parsed_query)
         else:
             raise Exception("Unhandled case in query function.")
@@ -53,7 +53,7 @@ class CypherParserBaseClass(object):
         atomic_facts = extract_atomic_facts(parsed_query)
         designation_to_node = {}
         designation_to_edge = {}
-        for literal in parsed_query.literals.literal_list:
+        for literal in parsed_query.create_clause.literals.literal_list:
             designation_to_node[literal.designation] = self._create_node(
                 graph_object, literal.node_class,
                 **literal.attribute_conditions)
@@ -117,7 +117,7 @@ class CypherParserBaseClass(object):
                                            atomic_fact.designation]))
                     # var = atomic_fact.designation
                     desired_class = atomic_fact.class_name
-                    if var_class != desired_class:
+                    if desired_class is not None and var_class != desired_class:
                         sentinal = False
                 elif isinstance(atomic_fact, EdgeExists):
                     if not any((self._edge_class(connecting_edge) ==
@@ -283,9 +283,9 @@ def extract_atomic_facts(query):
         elif isinstance(subquery, MatchQuery):
             _recurse(subquery.literals)
             _recurse(subquery.where_clause)
-        elif isinstance(subquery, CreateQuery):  # CreateQuery
+        elif isinstance(subquery, CreateClause):
             _recurse(subquery.literals)
-        elif isinstance(subquery, Literals):   # Literals
+        elif isinstance(subquery, Literals):
             for literal in subquery.literal_list:
                 _recurse(literal)
         elif isinstance(subquery, Node):
@@ -308,6 +308,8 @@ def extract_atomic_facts(query):
                 pass
         elif isinstance(subquery, WhereClause):
             _recurse.atomic_facts.append(subquery)
+        elif isinstance(subquery, CreateReturnQuery):
+            _recurse(subquery.create_clause)
         else:
             raise Exception('unhandled case in extract_atomic_facts:' + (
                 subquery.__class__.__name__))
@@ -323,14 +325,13 @@ def main():
     #                    '(y:LASTCLASS) RETURN x.foo, y'])
 
     create = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
-    # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
-    create_query = 'CREATE (n:SOMECLASS {foo: "bar"})-->(m:ANOTHERCLASS) RETURN n'
-    test_query = 'MATCH (n:SOMECLASS) WHERE n.foo = "bar" RETURN n.foo'
+    create_query = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "thing"}})-->(m:ANOTHERCLASS) RETURN n'
+    test_query = 'MATCH (n:SOMECLASS)-->(m:ANOTHERCLASS) WHERE n.foo = "bar" RETURN n.bar.qux'
     atomic_facts = extract_atomic_facts(test_query)
     g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
-    # for i in my_parser.query(g, create_query):
-    #     pass  # a generator, we need to loop over results to run.
+    for i in my_parser.query(g, create_query):
+        pass  # a generator, we need to loop over results to run.
     for i in my_parser.query(g, test_query):
         print i  # also a generator
     return atomic_facts
