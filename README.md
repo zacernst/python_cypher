@@ -52,12 +52,11 @@ query with no extra futzing around.
 
 ## Roadmap and current status
 
-The roadmap is to get a basic parser written that supports a small subset of Cypher. It will be used
-to generate a list of atomic facts that would have to be satisfied by any results returned from that
-query (e.g. there is a node with label "Foo", related to another node with label "Bar"). These atomic
-facts will be recorded in Python classes which will have methods for testing whether they hold for
-a particular choice of nodes. Finally, we'll add a set of methods for querying NetworkX (and other
-systems') graphs. I think that a module like this will be frightfully useful.
+The roadmap is to get a basic parser written that supports a small subset of Cypher, and build out
+additional features incrementally. As of now, it supports queries involving MATCH, CREATE, RETURN,
+WHERE, directed edges (which may contain labels), and nodes with class names and nested JSON
+documents. I'm trying to design everything so that it will be perfectly straightforward to
+design subclasses that will work with arbitrary graph storage schemes other than NetworkX.
 
 Check the [github wiki](https://github.com/zacernst/python_cypher/wiki) for the project's current
 status, roadmap, bugs, etc. Sphinx documentation will be available
