@@ -37,7 +37,7 @@ class CypherParserBaseClass(object):
     def query(self, graph_object, query_string):
         """Top-level function that's called by the parser when a query has
            been transformed to its AST. This function routes the parsed
-           query to a smaller number of high-level functions for handing
+           query to a smal number of high-level functions for handling
            specific types of queries (e.g. MATCH, CREATE, ...)"""
         parsed_query = self.parse(query_string)
         if isinstance(parsed_query, MatchWhereReturnQuery):
@@ -155,7 +155,7 @@ class CypherParserBaseClass(object):
     def _get_node(self, *args, **kwargs):
         raise NotImplementedError(
             "Method _get_domain needs to be defined in child class.")
-
+        
     def _node_attribute_value(self, *args, **kwargs):
         raise NotImplementedError(
             "Method _get_domain needs to be defined in child class.")
@@ -222,7 +222,6 @@ class CypherToNetworkx(CypherParserBaseClass):
 
     def _edge_exists(self, graph_obj, source, target,
                      edge_class=None, directed=True):
-        sentinal = True
         raise NotImplementedError("Haven't finished _edge_exists.")
 
     def _edges_connecting_nodes(self, graph_object, source, target):
