@@ -91,9 +91,9 @@ class NodeHasDocument(object):
         self.document = document
 
 
-class MatchReturnQuery(object):
+class MatchQuery(object):
     """A near top-level class representing any Cypher query of the form
-       MATCH... RETURN"""
+       MATCH... [WHERE...]"""
     def __init__(self, literals=None, return_variables=None,
                  where_clause=None):
         self.literals = literals
@@ -116,11 +116,19 @@ class ReturnVariables(object):
         self.variable_list = [variable]
 
 
-class CreateQuery(object):
+class CreateClause(object):
     """Class representing a CREATE... RETURN query, including cases
        where the RETURN isn't present."""
     def __init__(self, literals, return_variables=None):
         self.literals = literals
+        self.return_variables = return_variables
+
+
+class MatchWhereReturnQuery(object):
+    def __init__(self, match_clause=None,
+                 where_clause=None, return_variables=None):
+        self.match_clause = match_clause
+        self.where_clause = where_clause
         self.return_variables = return_variables
 
 
@@ -153,19 +161,21 @@ class WhereClause(object):
 
 
 def p_node_clause(p):
-    '''node_clause : LPAREN COLON NAME RPAREN
+    '''node_clause : LPAREN KEY RPAREN
+                   | LPAREN COLON NAME RPAREN
                    | LPAREN KEY COLON NAME RPAREN
                    | LPAREN KEY COLON NAME condition_list RPAREN'''
     global next_anonymous_variable
-    if len(p) == 5:
+    if len(p) == 4:
+        p[0] = Node(designation=p[2])
+    elif len(p) == 5:
         # Just a class name
         p[0] = Node(node_class=p[3],
-                    designation='_v' + str(next_anonymous_variable),
-                    attribute_conditions={})
+                    designation='_v' + str(next_anonymous_variable))
         next_anonymous_variable += 1
     elif len(p) == 6:
         # Node class name and variable
-        p[0] = Node(node_class=p[4], designation=p[2], attribute_conditions={})
+        p[0] = Node(node_class=p[4], designation=p[2])
     elif len(p) == 7:
         p[0] = Node(node_class=p[4], designation=p[2],
                     attribute_conditions=p[5])
@@ -296,27 +306,41 @@ def p_literals(p):
         raise Exception('unhandled case in p_literals')
 
 
-def p_match_return(p):
-    '''match_return : MATCH literals return_variables
-                    | MATCH literals where_clause return_variables'''
-    if len(p) == 4:
-        p[0] = MatchReturnQuery(literals=p[2], return_variables=p[3])
-    elif len(p) == 5:
-        p[0] = MatchReturnQuery(literals=p[2], return_variables=p[4],
-                                where_clause=p[3])
+def p_match_clause(p):
+    '''match_clause : MATCH literals'''
+    if len(p) == 3:
+        p[0] = MatchQuery(literals=p[2], return_variables=None)
     else:
-        raise Exception("Unhandled case in p_match_return.")
+        raise Exception("Unhandled case in p_match_clause.")
 
 
-def p_create(p):
-    '''create : CREATE literals return_variables'''
-    p[0] = CreateQuery(p[2], return_variables=p[3])
+def p_create_clause(p):
+    '''create_clause : CREATE literals'''
+    p[0] = CreateClause(p[2])
+
+
+class CreateReturnQuery(object):
+    def __init__(self, create_clause=None, return_variables=None):
+        self.create_clause = create_clause
+        self.return_variables = return_variables
 
 
 def p_full_query(p):
-    '''full_query : match_return
-                  | create'''
-    p[0] = p[1]
+    '''full_query : match_clause where_clause return_variables
+                  | match_clause return_variables
+                  | create_clause return_variables'''
+    if isinstance(p[1], MatchQuery) and isinstance(p[2], WhereClause):
+        p[0] = MatchWhereReturnQuery(match_clause=p[1],
+                                     where_clause=p[2],
+                                     return_variables=p[3])
+    elif isinstance(p[1], MatchQuery) and isinstance(p[2], ReturnVariables):
+        p[0] = MatchWhereReturnQuery(match_clause=p[1],
+                                     where_clause=None,
+                                     return_variables=p[3])
+    elif isinstance(p[1], CreateClause):
+        p[0] = CreateReturnQuery(create_clause=p[1], return_variables=p[2])
+    else:
+        raise Exception("Unhandled case in p_full_query.")
 
 
 def p_return_variables(p):
@@ -332,6 +356,7 @@ def p_return_variables(p):
 
 
 def p_error(p):
+    import pdb; pdb.set_trace()
     raise ParsingException("Generic error while parsing.")
 
 
