@@ -160,6 +160,21 @@ class WhereClause(object):
         self.constraint = constraint
 
 
+class MatchWhere(object):
+    '''Match -- where'''
+    def __init__(self, literals=None, where_clause=None,
+                 return_variables=None):
+        self.literals = literals or []
+        self.return_variables = return_variables or []
+        self.where_clause = where_clause or []
+
+
+class FullQuery(object):
+    '''Full query is just a list, basically.'''
+    def __init__(self, *args):
+        self.clause_list = args
+
+
 def p_node_clause(p):
     '''node_clause : LPAREN KEY RPAREN
                    | LPAREN COLON NAME RPAREN
@@ -306,41 +321,28 @@ def p_literals(p):
         raise Exception('unhandled case in p_literals')
 
 
-def p_match_clause(p):
-    '''match_clause : MATCH literals'''
+def p_match_where(p):
+    '''match_where : MATCH literals
+                   | MATCH literals where_clause'''
     if len(p) == 3:
-        p[0] = MatchQuery(literals=p[2], return_variables=None)
+        p[0] = MatchWhere(literals=p[2])
+    elif len(p) == 4:
+        p[0] = MatchWhere(literals=p[2], where_clause=p[3])
     else:
-        raise Exception("Unhandled case in p_match_clause.")
+        raise Exception("Unhandled case in p_match_where.")
 
 
-def p_create_clause(p):
+def p_create(p):
     '''create_clause : CREATE literals'''
-    p[0] = CreateClause(p[2])
-
-
-class CreateReturnQuery(object):
-    def __init__(self, create_clause=None, return_variables=None):
-        self.create_clause = create_clause
-        self.return_variables = return_variables
+    p[0] = CreateQuery(p[2])
 
 
 def p_full_query(p):
-    '''full_query : match_clause where_clause return_variables
-                  | match_clause return_variables
+    '''full_query : match_where return_variables
+                  | create_clause
                   | create_clause return_variables'''
-    if isinstance(p[1], MatchQuery) and isinstance(p[2], WhereClause):
-        p[0] = MatchWhereReturnQuery(match_clause=p[1],
-                                     where_clause=p[2],
-                                     return_variables=p[3])
-    elif isinstance(p[1], MatchQuery) and isinstance(p[2], ReturnVariables):
-        p[0] = MatchWhereReturnQuery(match_clause=p[1],
-                                     where_clause=None,
-                                     return_variables=p[2])
-    elif isinstance(p[1], CreateClause):
-        p[0] = CreateReturnQuery(create_clause=p[1], return_variables=p[2])
-    else:
-        raise Exception("Unhandled case in p_full_query.")
+    p[0] = FullQuery(*p[1:])
+    print p[0].__dict__
 
 
 def p_return_variables(p):

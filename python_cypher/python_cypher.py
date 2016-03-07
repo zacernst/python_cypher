@@ -24,6 +24,25 @@ class CypherParserBaseClass(object):
         self.tokenizer = cypher_tokenizer
         self.parser = cypher_parser
 
+
+    def yield_var_to_element(self, parsed_query, graph_object):
+        all_designations = set()
+        # Track down atomic_facts from outer scope.
+        atomic_facts = extract_atomic_facts(parsed_query)
+        for fact in atomic_facts:
+            if hasattr(fact, 'designation') and fact.designation is not None:
+                all_designations.add(fact.designation)
+        all_designations = sorted(list(all_designations))
+
+        domain = self._get_domain(graph_object)
+        for domain_assignment in itertools.product(
+                *[domain] * len(all_designations)):
+            var_to_element = {all_designations[index]: element for index,
+                              element in enumerate(domain_assignment)}
+            yield var_to_element
+
+
+
     def parse(self, query):
         """Calls yacc to parse the query string into an AST."""
         self.tokenizer.input(query)
@@ -40,7 +59,11 @@ class CypherParserBaseClass(object):
            query to a smal number of high-level functions for handling
            specific types of queries (e.g. MATCH, CREATE, ...)"""
         parsed_query = self.parse(query_string)
-        if isinstance(parsed_query, MatchWhereReturnQuery):
+        # This is where the refactor has to continue -- we now have a
+        # FullQuery object that's just got a list of clauses. We need to
+        # step through the from left to right, passing to each clause
+        # the variable assignments that have passed the previous clause.
+        if isinstance(parsed_query, MatchReturnQuery):
             for match in self.matching_nodes(graph_object, parsed_query):
                 yield match
         elif isinstance(parsed_query, CreateReturnQuery):
@@ -99,15 +122,8 @@ class CypherParserBaseClass(object):
                 all_designations.add(fact.designation)
         all_designations = sorted(list(all_designations))
 
-        domain = self._get_domain(graph_object)
-        for domain_assignment in itertools.product(
-                *[domain] * len(all_designations)):
-            var_to_element = {all_designations[index]: element for index,
-                              element in enumerate(domain_assignment)}
-            # Not sure if element_to_var will be useful
-            # element_to_var = {
-            #     v: k for k, v in var_to_element.iteritems()}
-            # print 'checking assignment:', var_to_element
+        for var_to_element in self.yield_var_to_element(
+                parsed_query, graph_object):
             sentinal = True
             for atomic_fact in atomic_facts:
                 if isinstance(atomic_fact, ClassIs):
@@ -129,7 +145,6 @@ class CypherParserBaseClass(object):
                                    var_to_element[atomic_fact.node_2])):
                         sentinal = False
                 elif isinstance(atomic_fact, WhereClause):
-
                     sentinal = sentinal & _eval_boolean(atomic_fact.constraint)
 
             if sentinal:
@@ -151,6 +166,7 @@ class CypherParserBaseClass(object):
     def _get_domain(self, *args, **kwargs):
         raise NotImplementedError(
             "Method _get_domain needs to be defined in child class.")
+
 
     def _get_node(self, *args, **kwargs):
         raise NotImplementedError(
@@ -310,6 +326,7 @@ def extract_atomic_facts(query):
         elif isinstance(subquery, CreateReturnQuery):
             _recurse(subquery.create_clause)
         else:
+            import pdb; pdb.set_trace()
             raise Exception('unhandled case in extract_atomic_facts:' + (
                 subquery.__class__.__name__))
     _recurse.atomic_facts = []
@@ -324,9 +341,10 @@ def main():
     #                    '(y:LASTCLASS) RETURN x.foo, y'])
 
     create = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
-    create_query = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "thing"}})-->(m:ANOTHERCLASS) RETURN n'
-    test_query = 'MATCH (n:SOMECLASS)-->(m:ANOTHERCLASS) WHERE n.foo = "bar" RETURN n.bar.qux'
-    atomic_facts = extract_atomic_facts(test_query)
+    # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
+    create_query = 'CREATE (n:SOMECLASS {foo: {goo: "bar"}})-->(m:ANOTHERCLASS) RETURN n'
+    test_query = 'MATCH (n:SOMECLASS) WHERE NOT (n.foo.goo = "baz" AND n.foo = "bar") RETURN n.foo.goo'
+    # atomic_facts = extract_atomic_facts(test_query)
     g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
     for i in my_parser.query(g, create_query):
