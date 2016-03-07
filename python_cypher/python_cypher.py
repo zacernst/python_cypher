@@ -41,8 +41,6 @@ class CypherParserBaseClass(object):
                               element in enumerate(domain_assignment)}
             yield var_to_element
 
-
-
     def parse(self, query):
         """Calls yacc to parse the query string into an AST."""
         self.tokenizer.input(query)
@@ -61,8 +59,17 @@ class CypherParserBaseClass(object):
         parsed_query = self.parse(query_string)
         # This is where the refactor has to continue -- we now have a
         # FullQuery object that's just got a list of clauses. We need to
-        # step through the from left to right, passing to each clause
+        # step through it from left to right, passing to each clause
         # the variable assignments that have passed the previous clause.
+        #
+        # For each assignment:
+        #     sentinal = True
+        #     for each clause in FullQuery (except RETURN):
+        #         send assignment, etc. to function determing type of check
+        #         if assignment doesn't pass, sentinal = False
+        #     if sentinal:
+        #         yield assignment (to RETURN clause function)
+        #
         if isinstance(parsed_query, MatchReturnQuery):
             for match in self.matching_nodes(graph_object, parsed_query):
                 yield match
