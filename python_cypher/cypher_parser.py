@@ -334,7 +334,7 @@ def p_match_where(p):
 
 def p_create(p):
     '''create_clause : CREATE literals'''
-    p[0] = CreateQuery(p[2])
+    p[0] = CreateClause(p[2])
 
 
 def p_full_query(p):
