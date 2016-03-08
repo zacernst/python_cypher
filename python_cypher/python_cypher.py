@@ -333,6 +333,7 @@ def main():
         pass  # a generator, we need to loop over results to run.
     for i in my_parser.query(g, test_query):
         print i  # also a generator
+    import pdb; pdb.set_trace()
     return atomic_facts
 
 
