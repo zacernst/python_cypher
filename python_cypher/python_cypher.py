@@ -70,6 +70,7 @@ class CypherParserBaseClass(object):
         #     if sentinal:
         #         yield assignment (to RETURN clause function)
         #
+        import pdb; pdb.set_trace()
         if isinstance(parsed_query, MatchReturnQuery):
             for match in self.matching_nodes(graph_object, parsed_query):
                 yield match
