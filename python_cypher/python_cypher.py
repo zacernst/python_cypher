@@ -102,6 +102,7 @@ class CypherParserBaseClass(object):
                 parsed_query, graph_object):
             for clause in parsed_query.clause_list:
                 if isinstance(clause, MatchWhere):
+                    # Don't loop; just test the current assignment.
                     for match in self.matching_nodes(
                             graph_object, clause):
                         print 'YIELD: --->', match
