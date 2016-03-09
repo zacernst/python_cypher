@@ -14,7 +14,8 @@ from cypher_tokenizer import *
 from cypher_parser import *
 
 PRINT_TOKENS = False
-PRINT_MATCHING_ASSIGNMENTS = False
+PRINT_MATCHING_ASSIGNMENTS = True
+
 
 def designations_from_atomic_facts(atomic_facts):
     """Returns a list of all the designations mentioned in the query."""
@@ -37,7 +38,6 @@ class CypherParserBaseClass(object):
         self.tokenizer = cypher_tokenizer
         self.parser = cypher_parser
 
-
     def yield_var_to_element(self, parsed_query, graph_object):
         all_designations = set()
         # Track down atomic_facts from outer scope.
@@ -45,6 +45,11 @@ class CypherParserBaseClass(object):
         for fact in atomic_facts:
             if hasattr(fact, 'designation') and fact.designation is not None:
                 all_designations.add(fact.designation)
+            elif hasattr(fact, 'literals'):
+                for literal in fact.literals.literal_list:
+                    if (hasattr(literal, 'designation') and
+                            literal.designation is not None):
+                        all_designations.add(literal.designation)
         all_designations = sorted(list(all_designations))
 
         domain = self._get_domain(graph_object)
@@ -52,6 +57,7 @@ class CypherParserBaseClass(object):
                 *[domain] * len(all_designations)):
             var_to_element = {all_designations[index]: element for index,
                               element in enumerate(domain_assignment)}
+            print 'yielding:', var_to_element
             yield var_to_element
 
     def parse(self, query):
@@ -92,24 +98,23 @@ class CypherParserBaseClass(object):
             self.head_create_query(graph_object, parsed_query)
             return  # Need to return the created nodes, possibly
 
-        # yield_var_to_element seems to be broken!  <--- HERE
         for assignment in self.yield_var_to_element(
                 parsed_query, graph_object):
             for clause in parsed_query.clause_list:
-                print clause.__dict__
-        import pdb; pdb.set_trace()
-        if isinstance(parsed_query, MatchWhere):
-            for match in self.matching_nodes(graph_object, parsed_query):
-                yield match
-        else:
-            raise Exception("Unhandled case in query function.")
+                if isinstance(clause, MatchWhere):
+                    for match in self.matching_nodes(
+                            graph_object, clause):
+                        print 'YIELD: --->', match
+                        yield match
+                else:
+                    import pdb; pdb.set_trace()
+                    raise Exception("Unhandled case in query function.")
 
     def head_create_query(self, graph_object, parsed_query):
         """For executing queries of the form CREATE... RETURN."""
         atomic_facts = extract_atomic_facts(parsed_query)
         designation_to_node = {}
         designation_to_edge = {}
-        literal_list = None
         for create_clause in parsed_query.clause_list:
             if not isinstance(create_clause, CreateClause):
                 continue
@@ -171,7 +176,8 @@ class CypherParserBaseClass(object):
                                            atomic_fact.designation]))
                     # var = atomic_fact.designation
                     desired_class = atomic_fact.class_name
-                    if desired_class is not None and var_class != desired_class:
+                    if (desired_class is not None and
+                            var_class != desired_class):
                         sentinal = False
                 elif isinstance(atomic_fact, EdgeExists):
                     if not any((self._edge_class(connecting_edge) ==
@@ -185,9 +191,14 @@ class CypherParserBaseClass(object):
                 elif isinstance(atomic_fact, WhereClause):
                     sentinal = sentinal & _eval_boolean(atomic_fact.constraint)
 
-            if sentinal:
+            # Skipping next routine -- We will need to replace this block
+            # so that we're always yielding back assignments that have passed
+            # each clause's "filter". Then we treat "RETURN" as a special case.
+
+            if 0 and sentinal:
                 if PRINT_MATCHING_ASSIGNMENTS:
-                    print var_to_element  # For debugging purposes only
+                    print 'var_to_element:', var_to_element
+                import pdb; pdb.set_trace()
                 variables_to_return = (
                     parsed_query.return_variables.variable_list)
                 return_list = []
@@ -205,11 +216,10 @@ class CypherParserBaseClass(object):
         raise NotImplementedError(
             "Method _get_domain needs to be defined in child class.")
 
-
     def _get_node(self, *args, **kwargs):
         raise NotImplementedError(
             "Method _get_domain needs to be defined in child class.")
-        
+
     def _node_attribute_value(self, *args, **kwargs):
         raise NotImplementedError(
             "Method _get_domain needs to be defined in child class.")
@@ -372,7 +382,7 @@ def extract_atomic_facts(query):
         else:
             import pdb; pdb.set_trace()
             raise Exception('unhandled case in extract_atomic_facts:' + (
-               subquery.__class__.__name__))
+                            subquery.__class__.__name__))
     _recurse.atomic_facts = []
     _recurse.next_anonymous_variable = 0
     _recurse(query)
@@ -384,10 +394,14 @@ def main():
     #                    'foo:"goo"})<-[:WHATEVER]-(:ANOTHERCLASS)',
     #                    '(y:LASTCLASS) RETURN x.foo, y'])
 
-    create = 'CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
+    # create = ('CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})'
+    #           '-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n')
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
-    create_query = 'CREATE (n:SOMECLASS {foo: {goo: "bar"}})-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n'
-    test_query = 'MATCH (n:SOMECLASS) WHERE NOT (n.foo.goo = "baz" AND n.foo = "bar") RETURN n.foo.goo'
+    create_query = ('CREATE (n:SOMECLASS {foo: {goo: "bar"}})'
+                    '-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n')
+    test_query = ('MATCH (n:SOMECLASS) WHERE '
+                  'NOT (n.foo.goo = "baz" AND n.foo = "bar") '
+                  'RETURN n.foo.goo')
     # atomic_facts = extract_atomic_facts(test_query)
     g = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
@@ -402,4 +416,3 @@ def main():
 if __name__ == '__main__':
     # This main method is just for testing
     out = main()
-
