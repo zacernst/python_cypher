@@ -16,6 +16,18 @@ from cypher_parser import *
 PRINT_TOKENS = False
 PRINT_MATCHING_ASSIGNMENTS = False
 
+def designations_from_atomic_facts(atomic_facts):
+    designations = []
+    for atomic_fact in atomic_facts:
+        designations.append(getattr(atomic_fact, 'designation', None))
+        designations.append(getattr(atomic_fact, 'node_1', None))
+        designations.append(getattr(atomic_fact, 'node_2', None))
+    designations = [designation for designation in designations if
+                    designation is not None]
+    designations = list(set(designations))
+    designations.sort()
+    return designations
+
 
 class CypherParserBaseClass(object):
     """The base class that specific parsers will inherit from. Certain methods
@@ -69,7 +81,12 @@ class CypherParserBaseClass(object):
         #         if assignment doesn't pass, sentinal = False
         #     if sentinal:
         #         yield assignment (to RETURN clause function)
-        import pdb; pdb.set_trace()
+        # Two cases: Starts with CREATE; doesn't start with CREATE.
+        # First doesn't require enumeration of the domain; second does.
+        if (isinstance(parsed_query.clause_list[0], CreateClause) and
+                parsed_query.clause_list[0].is_head):
+            # Run like before the refactor
+            self.head_create_query(graph_object, parsed_query)
 
         if isinstance(parsed_query, MatchReturnQuery):
             for match in self.matching_nodes(graph_object, parsed_query):
@@ -79,15 +96,20 @@ class CypherParserBaseClass(object):
         else:
             raise Exception("Unhandled case in query function.")
 
-    def create_query(self, graph_object, parsed_query):
+    def head_create_query(self, graph_object, parsed_query):
         """For executing queries of the form CREATE... RETURN."""
         atomic_facts = extract_atomic_facts(parsed_query)
         designation_to_node = {}
         designation_to_edge = {}
-        for literal in parsed_query.create_clause.literals.literal_list:
-            designation_to_node[literal.designation] = self._create_node(
-                graph_object, literal.node_class,
-                **literal.attribute_conditions)
+        literal_list = None
+        for create_clause in parsed_query.clause_list:
+            if not isinstance(create_clause, CreateClause):
+                continue
+            for literal in create_clause.literals.literal_list:
+                designation_to_node[literal.designation] = self._create_node(
+                    graph_object, literal.node_class,
+                    **literal.attribute_conditions)
+        import pdb; pdb.set_trace()
         for edge_fact in [
                 fact for fact in atomic_facts if
                 isinstance(fact, EdgeExists)]:
@@ -300,6 +322,11 @@ def extract_atomic_facts(query):
     def _recurse(subquery):
         if subquery is None:
             return
+        elif isinstance(subquery, ReturnVariables):
+            pass  # Ignore RETURN clause until after execution
+        elif isinstance(subquery, FullQuery):
+            for clause in subquery.clause_list:
+                _recurse(clause)
         elif isinstance(subquery, MatchWhereReturnQuery):
             _recurse(subquery.match_clause)
             _recurse(subquery.where_clause)
@@ -331,7 +358,7 @@ def extract_atomic_facts(query):
                 pass
         elif isinstance(subquery, WhereClause):
             _recurse.atomic_facts.append(subquery)
-        elif isinstance(subquery, CreateReturnQuery):
+        elif isinstance(subquery, CreateClause):
             _recurse(subquery.create_clause)
         else:
             import pdb; pdb.set_trace()

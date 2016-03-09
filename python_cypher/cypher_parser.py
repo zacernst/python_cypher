@@ -119,9 +119,10 @@ class ReturnVariables(object):
 class CreateClause(object):
     """Class representing a CREATE... RETURN query, including cases
        where the RETURN isn't present."""
-    def __init__(self, literals, return_variables=None):
+    def __init__(self, literals, is_head=False, return_variables=None):
         self.literals = literals
         self.return_variables = return_variables
+        self.is_head = False
 
 
 class MatchWhereReturnQuery(object):
@@ -342,6 +343,8 @@ def p_full_query(p):
                   | create_clause
                   | create_clause return_variables'''
     p[0] = FullQuery(*p[1:])
+    if isinstance(p[1], CreateClause):
+        p[1].is_head = True
     print p[0].__dict__
 
 
