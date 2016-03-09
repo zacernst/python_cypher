@@ -57,6 +57,7 @@ class CypherParserBaseClass(object):
            query to a smal number of high-level functions for handling
            specific types of queries (e.g. MATCH, CREATE, ...)"""
         parsed_query = self.parse(query_string)
+
         # This is where the refactor has to continue -- we now have a
         # FullQuery object that's just got a list of clauses. We need to
         # step through it from left to right, passing to each clause
@@ -69,7 +70,9 @@ class CypherParserBaseClass(object):
         #         if assignment doesn't pass, sentinal = False
         #     if sentinal:
         #         yield assignment (to RETURN clause function)
-        #
+
+        import pdb; pdb.set_trace()
+
         if isinstance(parsed_query, MatchReturnQuery):
             for match in self.matching_nodes(graph_object, parsed_query):
                 yield match
