@@ -77,6 +77,22 @@ class CypherParserBaseClass(object):
            specific types of queries (e.g. MATCH, CREATE, ...)"""
         parsed_query = self.parse(query_string)
 
+        def _test_match_where(clause, assignment, graph_object):
+            sentinal = True  # Satisfies unless we fail
+            for literal in clause.literals.literal_list:
+                designation = literal.designation
+                desired_class = literal.node_class
+                desired_document = literal.attribute_conditions
+                node = graph_object.node[assignment[designation]]
+                if node.get('class', None) != desired_class:
+                    sentinal = False
+                node_document = copy.deepcopy(node)
+                del node_document['class']
+                if len(desired_document) > 0 and node_document != desired_document:
+                    sentinal = False
+                    import pdb; pdb.set_trace()
+            return sentinal
+
         # This is where the refactor has to continue -- we now have a
         # FullQuery object that's just got a list of clauses. We need to
         # step through it from left to right, passing to each clause
@@ -92,24 +108,27 @@ class CypherParserBaseClass(object):
 
         # Two cases: Starts with CREATE; doesn't start with CREATE.
         # First doesn't require enumeration of the domain; second does.
+
         if (isinstance(parsed_query.clause_list[0], CreateClause) and
                 parsed_query.clause_list[0].is_head):
             # Run like before the refactor
             self.head_create_query(graph_object, parsed_query)
-            return  # Need to return the created nodes, possibly
-
-        for assignment in self.yield_var_to_element(
-                parsed_query, graph_object):
-            for clause in parsed_query.clause_list:
-                if isinstance(clause, MatchWhere):
-                    # Don't loop; just test the current assignment.
-                    for match in self.matching_nodes(
-                            graph_object, clause):
-                        print 'YIELD: --->', match
-                        yield match
-                else:
-                    import pdb; pdb.set_trace()
-                    raise Exception("Unhandled case in query function.")
+            yield 'foo'  # Need to return the created nodes, possibly
+        else:
+            for assignment in self.yield_var_to_element(
+                    parsed_query, graph_object):
+                satisfied = True
+                for clause in parsed_query.clause_list:
+                    if isinstance(clause, MatchWhere):  # MATCH... WHERE...
+                        satisfied = satisfied and _test_match_where(
+                            clause, assignment, graph_object)
+                        if satisfied:
+                            print 'YIELD: --->', assignment
+                    elif isinstance(clause, ReturnVariables):
+                        pass
+                    else:
+                        import pdb; pdb.set_trace()
+                        raise Exception("Unhandled case in query function.")
 
     def head_create_query(self, graph_object, parsed_query):
         """For executing queries of the form CREATE... RETURN."""
@@ -400,7 +419,7 @@ def main():
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
     create_query = ('CREATE (n:SOMECLASS {foo: {goo: "bar"}})'
                     '-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n')
-    test_query = ('MATCH (n:SOMECLASS) WHERE '
+    test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}}) WHERE '
                   'NOT (n.foo.goo = "baz" AND n.foo = "bar") '
                   'RETURN n.foo.goo')
     # atomic_facts = extract_atomic_facts(test_query)
@@ -411,7 +430,6 @@ def main():
     for i in my_parser.query(g, test_query):
         print i  # also a generator
     # import pdb; pdb.set_trace()
-    return atomic_facts
 
 
 if __name__ == '__main__':
