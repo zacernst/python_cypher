@@ -14,7 +14,7 @@ from cypher_tokenizer import *
 from cypher_parser import *
 
 PRINT_TOKENS = False
-PRINT_MATCHING_ASSIGNMENTS = True
+PRINT_MATCHING_ASSIGNMENTS = False
 
 
 def designations_from_atomic_facts(atomic_facts):
