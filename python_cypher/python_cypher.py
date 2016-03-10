@@ -96,17 +96,32 @@ class CypherParserBaseClass(object):
                 parsed_query.clause_list[0].is_head):
             # Run like before the refactor
             self.head_create_query(graph_object, parsed_query)
-            return  # Need to return the created nodes, possibly
+            yield 'foo'  # Need to return the created nodes, possibly
+
+        # stop if we've executed the previous code block
+
+        def _test_match_where(clause, assignment, graph_object):
+            sentinal = True  # Satisfies unless we fail
+            for literal in clause.literals.literal_list:
+                designation = literal.designation
+                desired_class = literal.node_class
+                desired_document = literal.attribute_conditions
+                node = graph_object.node[assignment[designation]]
+                if node.get('class', None) != desired_class:
+                    sentinal = False
+            return sentinal
 
         for assignment in self.yield_var_to_element(
                 parsed_query, graph_object):
+            satisfied = True
             for clause in parsed_query.clause_list:
-                if isinstance(clause, MatchWhere):
-                    # Don't loop; just test the current assignment.
-                    for match in self.matching_nodes(
-                            graph_object, clause):
-                        print 'YIELD: --->', match
-                        yield match
+                if isinstance(clause, MatchWhere):  # MATCH... WHERE...
+                    satisfied = satisfied and _test_match_where(
+                        clause, assignment, graph_object)
+                    if satisfied:
+                        print 'YIELD: --->', assignment
+                elif isinstance(clause, ReturnVariables):
+                    import pdb; pdb.set_trace()
                 else:
                     import pdb; pdb.set_trace()
                     raise Exception("Unhandled case in query function.")
