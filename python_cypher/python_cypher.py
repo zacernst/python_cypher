@@ -70,6 +70,30 @@ class CypherParserBaseClass(object):
             tok = self.tokenizer.token()
         return self.parser.parse(query)
 
+    def eval_constraint(self, constraint, assignment, graph_object):
+        """This is the basis case for the recursive check
+           on WHERE clauses."""
+        value = self._attribute_value_from_node_keypath(
+            self._get_node(
+                graph_object,
+                assignment[constraint.keypath[0]]),
+            constraint.keypath[1:])
+        return value == constraint.value
+
+    def eval_boolean(self, clause, assignment, graph_object):
+        """Recursive function to evaluate WHERE clauses. ``Or``
+           and ``Not`` classes inherit from ``Constraint``."""
+        if isinstance(clause, Or):
+            return (self.eval_boolean(clause.left_disjunct,
+                                      assignment, graph_object) or
+                    self.eval_boolean(clause.right_disjunct,
+                                      assignment, graph_object))
+        elif isinstance(clause, Not):
+            return not self.eval_boolean(clause.argument,
+                                         assignment, graph_object)
+        elif isinstance(clause, Constraint):
+            return self.eval_constraint(clause, assignment, graph_object)
+
     def query(self, graph_object, query_string):
         """Top-level function that's called by the parser when a query has
            been transformed to its AST. This function routes the parsed
@@ -84,13 +108,22 @@ class CypherParserBaseClass(object):
                 desired_class = literal.node_class
                 desired_document = literal.attribute_conditions
                 node = graph_object.node[assignment[designation]]
+                # Check the class of the node
                 if node.get('class', None) != desired_class:
                     sentinal = False
                 node_document = copy.deepcopy(node)
+                # The `node_document` is a temporary copy for comparisons
                 del node_document['class']
-                if len(desired_document) > 0 and node_document != desired_document:
+                if (len(desired_document) > 0 and
+                        node_document != desired_document):
                     sentinal = False
-                    import pdb; pdb.set_trace()
+            # Check the WHERE clause
+            # Note this isn't in the previous loop, because the WHERE clause
+            # isn't restricted to a specific node
+            if sentinal:
+                constraint = clause.where_clause.constraint
+                out = self.eval_boolean(constraint, assignment, graph_object)
+                sentinal = sentinal & out
             return sentinal
 
         # This is where the refactor has to continue -- we now have a
@@ -152,85 +185,6 @@ class CypherParserBaseClass(object):
                                             target_node, edge_label=edge_label)
             # Need an attribute for an edge designation
             designation_to_edge['placeholder'] = new_edge_id
-
-    def matching_nodes(self, graph_object, parsed_query):
-        """For executing queries of the form MATCH... [WHERE...] RETURN..."""
-
-        def _eval_constraint(constraint):
-            """This is the basis case for the recursive check
-               on WHERE clauses."""
-            value = self._attribute_value_from_node_keypath(
-                self._get_node(
-                    graph_object,
-                    var_to_element[constraint.keypath[0]]),
-                constraint.keypath[1:])
-            return value == constraint.value
-
-        def _eval_boolean(clause):
-            """Recursive function to evaluate WHERE clauses. ``Or``
-               and ``Not`` classes inherit from ``Constraint``."""
-            if isinstance(clause, Or):
-                return (_eval_boolean(clause.left_disjunct) or
-                        _eval_boolean(clause.right_disjunct))
-            elif isinstance(clause, Not):
-                return not _eval_boolean(clause.argument)
-            elif isinstance(clause, Constraint):
-                return _eval_constraint(clause)
-
-        all_designations = set()
-        # Track down atomic_facts from outer scope.
-        atomic_facts = extract_atomic_facts(parsed_query)
-        for fact in atomic_facts:
-            if hasattr(fact, 'designation') and fact.designation is not None:
-                all_designations.add(fact.designation)
-        all_designations = sorted(list(all_designations))
-
-        for var_to_element in self.yield_var_to_element(
-                parsed_query, graph_object):
-            sentinal = True
-            for atomic_fact in atomic_facts:
-                if isinstance(atomic_fact, ClassIs):
-                    var_class = self._node_class(
-                        self._get_node(graph_object,
-                                       var_to_element[
-                                           atomic_fact.designation]))
-                    # var = atomic_fact.designation
-                    desired_class = atomic_fact.class_name
-                    if (desired_class is not None and
-                            var_class != desired_class):
-                        sentinal = False
-                elif isinstance(atomic_fact, EdgeExists):
-                    if not any((self._edge_class(connecting_edge) ==
-                                atomic_fact.edge_label)
-                               for _, connecting_edge in
-                               self._edges_connecting_nodes(
-                                   graph_object,
-                                   var_to_element[atomic_fact.node_1],
-                                   var_to_element[atomic_fact.node_2])):
-                        sentinal = False
-                elif isinstance(atomic_fact, WhereClause):
-                    sentinal = sentinal & _eval_boolean(atomic_fact.constraint)
-
-            # Skipping next routine -- We will need to replace this block
-            # so that we're always yielding back assignments that have passed
-            # each clause's "filter". Then we treat "RETURN" as a special case.
-
-            if 0 and sentinal:
-                if PRINT_MATCHING_ASSIGNMENTS:
-                    print 'var_to_element:', var_to_element
-                import pdb; pdb.set_trace()
-                variables_to_return = (
-                    parsed_query.return_variables.variable_list)
-                return_list = []
-                for return_path in variables_to_return:
-                    if isinstance(return_path, str):
-                        return_list.append(var_to_element[return_path])
-                        break
-                    node = self._get_node(
-                        graph_object, var_to_element[return_path.pop(0)])
-                    return_list.append(
-                        self._node_attribute_value(node, return_path))
-                yield return_list
 
     def _get_domain(self, *args, **kwargs):
         raise NotImplementedError(
