@@ -297,8 +297,8 @@ class CypherToNetworkx(CypherParserBaseClass):
 
 def random_hash():
     """Return a random hash for naming new nods and edges."""
-    random_hash = hashlib.md5(str(random.random() + time.time())).hexdigest()
-    return random_hash
+    hash_value = hashlib.md5(str(random.random() + time.time())).hexdigest()
+    return hash_value
 
 
 def unique_id():
@@ -355,8 +355,9 @@ def extract_atomic_facts(query):
             _recurse(subquery.create_clause)
         else:
             import pdb; pdb.set_trace()
-            raise Exception('unhandled case in extract_atomic_facts:' + (
-                            subquery.__class__.__name__))
+            raise Exception(
+                'unhandled case in extract_atomic_facts:' + (
+                    subquery.__class__.__name__))
     _recurse.atomic_facts = []
     _recurse.next_anonymous_variable = 0
     _recurse(query)
@@ -377,11 +378,11 @@ def main():
                   'NOT (n.foo.goo = "baz" AND n.foo = "bar") '
                   'RETURN n.foo.goo')
     # atomic_facts = extract_atomic_facts(test_query)
-    g = nx.MultiDiGraph()
+    graph_object = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
-    for i in my_parser.query(g, create_query):
+    for i in my_parser.query(graph_object, create_query):
         pass  # a generator, we need to loop over results to run.
-    for i in my_parser.query(g, test_query):
+    for i in my_parser.query(graph_object, test_query):
         print i  # also a generator
     # import pdb; pdb.set_trace()
 
