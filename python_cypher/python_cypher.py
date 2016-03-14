@@ -139,7 +139,7 @@ class CypherParserBaseClass(object):
             # Note this isn't in the previous loop, because the WHERE clause
             # isn't restricted to a specific node
             sentinal = sentinal and edge_sentinal
-            if sentinal:
+            if sentinal and clause.where_clause is not None:
                 constraint = clause.where_clause.constraint
                 constraint_eval = self.eval_boolean(
                     constraint, assignment, graph_object)

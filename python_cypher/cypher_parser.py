@@ -166,8 +166,8 @@ class MatchWhere(object):
     def __init__(self, literals=None, where_clause=None,
                  return_variables=None):
         self.literals = literals or []
-        self.return_variables = return_variables or []
-        self.where_clause = where_clause or []
+        self.return_variables = return_variables
+        self.where_clause = where_clause
 
 
 class FullQuery(object):
