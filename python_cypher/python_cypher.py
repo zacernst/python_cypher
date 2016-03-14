@@ -96,12 +96,12 @@ class CypherParserBaseClass(object):
     def query(self, graph_object, query_string):
         """Top-level function that's called by the parser when a query has
            been transformed to its AST. This function routes the parsed
-           query to a smal number of high-level functions for handling
+           query to a small number of high-level functions for handling
            specific types of queries (e.g. MATCH, CREATE, ...)"""
         parsed_query = self.parse(query_string)
 
         def _test_match_where(clause, assignment, graph_object):
-            sentinal = True  # Satisfies unless we fail
+            sentinal = True  # Satisfied unless we fail
             for literal in clause.literals.literal_list:
                 designation = literal.designation
                 desired_class = literal.node_class
@@ -141,8 +141,9 @@ class CypherParserBaseClass(object):
             sentinal = sentinal and edge_sentinal
             if sentinal:
                 constraint = clause.where_clause.constraint
-                out = self.eval_boolean(constraint, assignment, graph_object)
-                sentinal = sentinal and out
+                constraint_eval = self.eval_boolean(
+                    constraint, assignment, graph_object)
+                sentinal = sentinal and constraint_eval
             return sentinal
 
         # This is where the refactor has to continue -- we now have a
@@ -153,7 +154,7 @@ class CypherParserBaseClass(object):
         # For each assignment:
         #     sentinal = True
         #     for each clause in FullQuery (except RETURN):
-        #         send assignment, etc. to function determing type of check
+        #         send assignment, etc. to function determining type of check
         #         if assignment doesn't pass, sentinal = False
         #     if sentinal:
         #         yield assignment (to RETURN clause function)
@@ -171,6 +172,8 @@ class CypherParserBaseClass(object):
                     parsed_query, graph_object):
                 satisfied = True
                 for clause in parsed_query.clause_list:
+                    if not satisfied:
+                        break
                     if isinstance(clause, MatchWhere):  # MATCH... WHERE...
                         satisfied = satisfied and _test_match_where(
                             clause, assignment, graph_object)
@@ -189,6 +192,7 @@ class CypherParserBaseClass(object):
         designation_to_edge = {}
         for create_clause in parsed_query.clause_list:
             if not isinstance(create_clause, CreateClause):
+
                 continue
             for literal in create_clause.literals.literal_list:
                 designation_to_node[literal.designation] = self._create_node(
@@ -290,7 +294,6 @@ class CypherToNetworkx(CypherParserBaseClass):
             for target, edge_dict in target_dict.iteritems():
                 for index, one_edge in edge_dict.iteritems():
                     if one_edge['_id'] == edge_id:
-                        import pdb; pdb.set_trace()
                         return one_edge
 
     def _edges_connecting_nodes(self, graph_object, source, target):
@@ -415,7 +418,7 @@ def main():
     for i in my_parser.query(graph_object, create_query):
         pass  # a generator, we need to loop over results to run.
     for i in my_parser.query(graph_object, test_query):
-        pass
+        print i
     # import pdb; pdb.set_trace()
 
 

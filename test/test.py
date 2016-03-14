@@ -39,7 +39,7 @@ class TestPythonCypher(unittest.TestCase):
         test_parser = python_cypher.CypherToNetworkx()
         list(test_parser.query(g, create_query))
         out = list(test_parser.query(g, match_query))
-        # self.assertEqual(out[0], ['bar'])
+        self.assertEqual(out[0], ['bar'])
 
 
 if __name__ == '__main__':
