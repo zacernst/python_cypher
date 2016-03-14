@@ -57,7 +57,6 @@ class CypherParserBaseClass(object):
                 *[domain] * len(all_designations)):
             var_to_element = {all_designations[index]: element for index,
                               element in enumerate(domain_assignment)}
-            print 'yielding:', var_to_element
             yield var_to_element
 
     def parse(self, query):
@@ -109,21 +108,41 @@ class CypherParserBaseClass(object):
                 desired_document = literal.attribute_conditions
                 node = graph_object.node[assignment[designation]]
                 # Check the class of the node
-                if node.get('class', None) != desired_class:
+                if (desired_class is not None and
+                        node.get('class', None) != desired_class):
                     sentinal = False
                 node_document = copy.deepcopy(node)
                 # The `node_document` is a temporary copy for comparisons
                 del node_document['class']
-                if (len(desired_document) > 0 and
+                if sentinal and (len(desired_document) > 0 and
                         node_document != desired_document):
                     sentinal = False
+                # Check all connecting edges from this node (literal)
+                edge_sentinal = True
+                for edge in literal.connecting_edges:
+                    edge_sentinal = False
+                    source_designation = edge.node_1
+                    target_designation = edge.node_2
+                    edge_label = edge.edge_label
+                    source_node = assignment[source_designation]
+                    target_node = assignment[target_designation]
+                    for one_edge_id in self._edges_connecting_nodes(
+                            graph_object, source_node, target_node):
+                        one_edge = self._get_edge_from_id(
+                            graph_object, one_edge_id)
+                        if (edge_label is None or
+                                self._edge_class(one_edge) == edge_label):
+                            edge_sentinal = True
+                            # Add the edge to the returned values
+                            # and then yield the assignment back
             # Check the WHERE clause
             # Note this isn't in the previous loop, because the WHERE clause
             # isn't restricted to a specific node
+            sentinal = sentinal and edge_sentinal
             if sentinal:
                 constraint = clause.where_clause.constraint
                 out = self.eval_boolean(constraint, assignment, graph_object)
-                sentinal = sentinal & out
+                sentinal = sentinal and out
             return sentinal
 
         # This is where the refactor has to continue -- we now have a
@@ -223,6 +242,10 @@ class CypherParserBaseClass(object):
         raise NotImplementedError(
             "Method _create_edge needs to be defined in child class.")
 
+    def _get_edge_from_id(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _get_edge_from_id needs to be defined in child class.")
+
     def _attribute_value_from_node_keypath(self, *args, **kwargs):
         raise NotImplementedError(
             "Method _attribute_value_from_node_keypath needs to be defined.")
@@ -262,12 +285,21 @@ class CypherToNetworkx(CypherParserBaseClass):
                      edge_class=None, directed=True):
         raise NotImplementedError("Haven't finished _edge_exists.")
 
+    def _get_edge_from_id(self, graph_object, edge_id):
+        for source, target_dict in graph_object.edge.iteritems():
+            for target, edge_dict in target_dict.iteritems():
+                for index, one_edge in edge_dict.iteritems():
+                    if one_edge['_id'] == edge_id:
+                        import pdb; pdb.set_trace()
+                        return one_edge
+
     def _edges_connecting_nodes(self, graph_object, source, target):
         try:
-            for index, data in graph_object.edge[source][target].iteritems():
-                yield index, data
+            for index, data in graph_object.edge[source].get(
+                    target, {}).iteritems():
+                yield data['_id']
         except:
-            pass
+            raise Exception("Error getting edges connecting nodes.")
 
     def _node_class(self, node, class_key='class'):
         return node.get(class_key, None)
@@ -373,9 +405,9 @@ def main():
     #           '-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n')
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
     create_query = ('CREATE (n:SOMECLASS {foo: {goo: "bar"}})'
-                    '-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n')
-    test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}}) WHERE '
-                  'NOT (n.foo.goo = "baz" AND n.foo = "bar") '
+                    '-[e:EDGECLASS]->(m:ANOTHERCLASS {qux: "foobar"}) RETURN n')
+    test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-->(m:ANOTHERCLASS) WHERE '
+                  'NOT (n.foo.goo = "baz" OR n.foo = "bar") '
                   'RETURN n.foo.goo')
     # atomic_facts = extract_atomic_facts(test_query)
     graph_object = nx.MultiDiGraph()
@@ -383,7 +415,7 @@ def main():
     for i in my_parser.query(graph_object, create_query):
         pass  # a generator, we need to loop over results to run.
     for i in my_parser.query(graph_object, test_query):
-        print i  # also a generator
+        pass
     # import pdb; pdb.set_trace()
 
 

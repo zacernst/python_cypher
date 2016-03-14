@@ -345,7 +345,6 @@ def p_full_query(p):
     p[0] = FullQuery(*p[1:])
     if isinstance(p[1], CreateClause):
         p[1].is_head = True
-    print p[0].__dict__
 
 
 def p_return_variables(p):
