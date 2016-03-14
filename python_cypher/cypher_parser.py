@@ -166,8 +166,8 @@ class MatchWhere(object):
     def __init__(self, literals=None, where_clause=None,
                  return_variables=None):
         self.literals = literals or []
-        self.return_variables = return_variables or []
-        self.where_clause = where_clause or []
+        self.return_variables = return_variables
+        self.where_clause = where_clause
 
 
 class FullQuery(object):
@@ -345,7 +345,6 @@ def p_full_query(p):
     p[0] = FullQuery(*p[1:])
     if isinstance(p[1], CreateClause):
         p[1].is_head = True
-    print p[0].__dict__
 
 
 def p_return_variables(p):
