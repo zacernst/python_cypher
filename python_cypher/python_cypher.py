@@ -120,6 +120,7 @@ class CypherParserBaseClass(object):
                 # Check all connecting edges from this node (literal)
                 edge_sentinal = True
                 for edge in literal.connecting_edges:
+                    # import pdb; pdb.set_trace()
                     edge_sentinal = False
                     source_designation = edge.node_1
                     target_designation = edge.node_2
@@ -349,6 +350,9 @@ def extract_atomic_facts(query):
     def _recurse(subquery):
         if subquery is None:
             return
+        elif isinstance(subquery, list):
+            for item in subquery:
+                _recurse(item)
         elif isinstance(subquery, ReturnVariables):
             pass  # Ignore RETURN clause until after execution
         elif isinstance(subquery, FullQuery):
@@ -365,15 +369,28 @@ def extract_atomic_facts(query):
         elif isinstance(subquery, Literals):
             for literal in subquery.literal_list:
                 _recurse(literal)
+
+        # Add support for edges here in the recursion
+        # Need to add an anonymous variable if a designation is not provided
+        elif isinstance(subquery, EdgeExists):
+            if (not hasattr(subquery, 'designation') or
+                    subquery.designation is None):
+                subquery.designation = (
+                    '_v' + str(_recurse.next_anonymous_variable))
+                _recurse.next_anonymous_variable += 1
+
         elif isinstance(subquery, Node):
             if (not hasattr(subquery, 'designation') or
                     subquery.designation is None):
                 subquery.designation = (
                     '_v' + str(_recurse.next_anonymous_variable))
-                subquery.next_anonymous_variable += 1
+                _recurse.next_anonymous_variable += 1
             _recurse.atomic_facts.append(ClassIs(subquery.designation,
                                                  subquery.node_class))
+            _recurse(subquery.connecting_edges)
             _recurse.atomic_facts += subquery.connecting_edges
+            # print 'here'
+            # import pdb; pdb.set_trace()
             if hasattr(subquery, 'attribute_conditions'):
                 _recurse.atomic_facts.append(
                     NodeHasDocument(
@@ -409,7 +426,7 @@ def main():
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
     create_query = ('CREATE (n:SOMECLASS {foo: {goo: "bar"}})'
                     '-[e:EDGECLASS]->(m:ANOTHERCLASS {qux: "foobar"}) RETURN n')
-    test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-->(m:ANOTHERCLASS) WHERE '
+    test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-[e:NONCLASS]->(m:ANOTHERCLASS) WHERE '
                   'NOT (n.foo.goo = "baz" OR n.foo = "bar") '
                   'RETURN n.foo.goo')
     # atomic_facts = extract_atomic_facts(test_query)
