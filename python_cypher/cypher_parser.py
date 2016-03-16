@@ -72,6 +72,7 @@ class EdgeExists(AtomicFact):
         self.node_1 = node_1
         self.node_2 = node_2
         self.edge_label = edge_label
+        self.designation = designation
 
 
 class Node(object):
@@ -308,14 +309,16 @@ def p_literals(p):
         p[0] = p[1]
         edge_fact = EdgeExists(p[1].literal_list[-1].designation,
                                p[3].literal_list[0].designation,
-                               edge_label=p[2].edge_label)
+                               edge_label=p[2].edge_label,
+                               designation=p[2].designation)
         p[0].literal_list[-1].connecting_edges.append(edge_fact)
         p[0].literal_list += p[3].literal_list
     elif isinstance(p[2], EdgeCondition) and p[2].direction == 'right_left':
         p[0] = p[1]
         edge_fact = EdgeExists(p[3].literal_list[0].designation,
                                p[1].literal_list[-1].designation,
-                               edge_label=p[2].edge_label)
+                               edge_label=p[2].edge_label,
+                               designation=p[2].designation)
         p[0].literal_list[-1].connecting_edges.append(edge_fact)
         p[0].literal_list += p[3].literal_list
     else:
