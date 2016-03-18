@@ -115,12 +115,12 @@ class CypherParserBaseClass(object):
                 # The `node_document` is a temporary copy for comparisons
                 del node_document['class']
                 if sentinal and (len(desired_document) > 0 and
-                        node_document != desired_document):
+                                 node_document != desired_document):
                     sentinal = False
                 # Check all connecting edges from this node (literal)
-                edge_sentinal = True
+                if not not literal.connecting_edges:  # not not -> empty?
+                    edge_sentinal = True
                 for edge in literal.connecting_edges:
-                    # import pdb; pdb.set_trace()
                     edge_sentinal = False
                     source_designation = edge.node_1
                     target_designation = edge.node_2
@@ -134,8 +134,8 @@ class CypherParserBaseClass(object):
                         if (edge_label is None or
                                 self._edge_class(one_edge) == edge_label):
                             edge_sentinal = True
-                            # Add the edge to the returned values
-                            # and then yield the assignment back
+                            if getattr(edge, 'designation', None) is not None:
+                                assignment[edge.designation] = one_edge_id
             # Check the WHERE clause
             # Note this isn't in the previous loop, because the WHERE clause
             # isn't restricted to a specific node
@@ -308,7 +308,7 @@ class CypherToNetworkx(CypherParserBaseClass):
     def _node_class(self, node, class_key='class'):
         return node.get(class_key, None)
 
-    def _edge_class(self, edge, class_key='class'):
+    def _edge_class(self, edge, class_key='edge_label'):
         try:
             out = edge.get(class_key, None)
         except AttributeError:
@@ -425,8 +425,10 @@ def main():
     #           '-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n')
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
     create_query = ('CREATE (n:SOMECLASS {foo: {goo: "bar"}})'
-                    '-[e:EDGECLASS]->(m:ANOTHERCLASS {qux: "foobar"}) RETURN n')
-    test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-[e:NONCLASS]->(m:ANOTHERCLASS) WHERE '
+                    '-[e:EDGECLASS]->(m:ANOTHERCLASS {qux: "foobar"}) '
+                    'RETURN n')
+    test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-[e:EDGECLASS]->'
+                  '(m:ANOTHERCLASS) WHERE '
                   'NOT (n.foo.goo = "baz" OR n.foo = "bar") '
                   'RETURN n.foo.goo')
     # atomic_facts = extract_atomic_facts(test_query)
@@ -436,7 +438,6 @@ def main():
         pass  # a generator, we need to loop over results to run.
     for i in my_parser.query(graph_object, test_query):
         print i
-    # import pdb; pdb.set_trace()
 
 
 if __name__ == '__main__':
