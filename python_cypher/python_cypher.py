@@ -72,6 +72,8 @@ class CypherParserBaseClass(object):
     def eval_constraint(self, constraint, assignment, graph_object):
         """This is the basis case for the recursive check
            on WHERE clauses."""
+        # This might be broken because _get_node might expect the actual
+        # node to be passed to it rather than the name of the node
         value = self._attribute_value_from_node_keypath(
             self._get_node(
                 graph_object,
@@ -147,19 +149,6 @@ class CypherParserBaseClass(object):
                 sentinal = sentinal and constraint_eval
             return sentinal
 
-        # This is where the refactor has to continue -- we now have a
-        # FullQuery object that's just got a list of clauses. We need to
-        # step through it from left to right, passing to each clause
-        # the variable assignments that have passed the previous clause.
-        #
-        # For each assignment:
-        #     sentinal = True
-        #     for each clause in FullQuery (except RETURN):
-        #         send assignment, etc. to function determining type of check
-        #         if assignment doesn't pass, sentinal = False
-        #     if sentinal:
-        #         yield assignment (to RETURN clause function)
-
         # Two cases: Starts with CREATE; doesn't start with CREATE.
         # First doesn't require enumeration of the domain; second does.
 
@@ -169,6 +158,8 @@ class CypherParserBaseClass(object):
             self.head_create_query(graph_object, parsed_query)
             yield 'foo'  # Need to return the created nodes, possibly
         else:
+            # Importantly, we step through each assignment, and then for
+            # each assignment, we step through each "clause" (need better name)
             for assignment in self.yield_var_to_element(
                     parsed_query, graph_object):
                 satisfied = True
@@ -181,7 +172,18 @@ class CypherParserBaseClass(object):
                         if satisfied:
                             print 'YIELD: --->', assignment
                     elif isinstance(clause, ReturnVariables):
-                        pass
+                        # We've added any edges to the assignment dictionary
+                        # Now we need to step through the keypath lists that
+                        # are stored in the ReturnVariables object under the
+                        # attribute "variable_list"
+                        return_values = []
+                        for variable_path in clause.variable_list:
+                            # I expect this will choke on edges if we ask for their
+                            # properties to be returned
+                            node = self._get_node(graph_object, assignment[variable_path[0]])
+                            return_value = self._attribute_value_from_node_keypath(node, variable_path[1:])
+                            return_values.append(return_value)
+                        import pdb; pdb.set_trace()
                     else:
                         import pdb; pdb.set_trace()
                         raise Exception("Unhandled case in query function.")
@@ -430,7 +432,7 @@ def main():
     test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-[e:EDGECLASS]->'
                   '(m:ANOTHERCLASS) WHERE '
                   'NOT (n.foo.goo = "baz" OR n.foo = "bar") '
-                  'RETURN n.foo.goo')
+                  'RETURN n.foo.goo, m.qux, n')
     # atomic_facts = extract_atomic_facts(test_query)
     graph_object = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
