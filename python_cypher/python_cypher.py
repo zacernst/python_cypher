@@ -169,8 +169,6 @@ class CypherParserBaseClass(object):
                     if isinstance(clause, MatchWhere):  # MATCH... WHERE...
                         satisfied = satisfied and _test_match_where(
                             clause, assignment, graph_object)
-                        if satisfied:
-                            print 'YIELD: --->', assignment
                     elif isinstance(clause, ReturnVariables):
                         # We've added any edges to the assignment dictionary
                         # Now we need to step through the keypath lists that
@@ -178,12 +176,21 @@ class CypherParserBaseClass(object):
                         # attribute "variable_list"
                         return_values = []
                         for variable_path in clause.variable_list:
-                            # I expect this will choke on edges if we ask for their
-                            # properties to be returned
-                            node = self._get_node(graph_object, assignment[variable_path[0]])
-                            return_value = self._attribute_value_from_node_keypath(node, variable_path[1:])
+                            # I expect this will choke on edges if we ask for
+                            # their properties to be returned
+                            if self._is_edge(graph_object, assignment[variable_path[0]]):
+                                _get_node_or_edge = self._get_edge
+                            elif self._is_node(graph_object, assignment[variable_path[0]]):
+                                _get_node_or_edge = self._get_node
+                            else:
+                                raise Exception("Neither a node nor an edge.")
+                            node_or_edge = _get_node_or_edge(
+                                graph_object, assignment[variable_path[0]])
+                            return_value = (
+                                self._attribute_value_from_node_keypath(
+                                    node_or_edge, variable_path[1:]))
                             return_values.append(return_value)
-                        import pdb; pdb.set_trace()
+                        yield return_values
                     else:
                         import pdb; pdb.set_trace()
                         raise Exception("Unhandled case in query function.")
@@ -195,7 +202,6 @@ class CypherParserBaseClass(object):
         designation_to_edge = {}
         for create_clause in parsed_query.clause_list:
             if not isinstance(create_clause, CreateClause):
-
                 continue
             for literal in create_clause.literals.literal_list:
                 designation_to_node[literal.designation] = self._create_node(
@@ -257,6 +263,14 @@ class CypherParserBaseClass(object):
         raise NotImplementedError(
             "Method _attribute_value_from_node_keypath needs to be defined.")
 
+    def _is_edge(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _is_edge needs to be defined.")
+
+    def _is_node(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _is_node needs to be defined.")
+
 
 class CypherToNetworkx(CypherParserBaseClass):
     """Child class inheriting from ``CypherParserBaseClass`` to hook up
@@ -265,8 +279,26 @@ class CypherToNetworkx(CypherParserBaseClass):
     def _get_domain(self, obj):
         return obj.nodes()
 
+    def _is_node(self, graph_object, node_name):
+        return node_name in graph_object.node
+
+    def _is_edge(self, graph_object, edge_name):
+        for source_node_id, connections_dict in graph_object.edge.iteritems():
+            for _, edges_dict in connections_dict.iteritems():
+                for _, edge_dict in edges_dict.iteritems():
+                    if edge_dict.get('_id', None) == edge_name:
+                        return True
+        return False
+
     def _get_node(self, graph_object, node_name):
         return graph_object.node[node_name]
+
+    def _get_edge(self, graph_object, edge_name):
+        for source_node_id, connections_dict in graph_object.edge.iteritems():
+            for _, edges_dict in connections_dict.iteritems():
+                for _, edge_dict in edges_dict.iteritems():
+                    if edge_dict.get('_id', None) == edge_name:
+                        return edge_dict
 
     def _node_attribute_value(self, node, attribute_list):
         out = copy.deepcopy(node)
@@ -427,12 +459,12 @@ def main():
     #           '-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n')
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
     create_query = ('CREATE (n:SOMECLASS {foo: {goo: "bar"}})'
-                    '-[e:EDGECLASS]->(m:ANOTHERCLASS {qux: "foobar"}) '
+            '-[e:EDGECLASS]->(m:ANOTHERCLASS {qux: "foobar"}) '
                     'RETURN n')
     test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-[e:EDGECLASS]->'
                   '(m:ANOTHERCLASS) WHERE '
                   'NOT (n.foo.goo = "baz" OR n.foo = "bar") '
-                  'RETURN n.foo.goo, m.qux, n')
+                  'RETURN n.foo.goo, m.qux, e')
     # atomic_facts = extract_atomic_facts(test_query)
     graph_object = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
