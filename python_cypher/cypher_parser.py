@@ -200,11 +200,14 @@ def p_node_clause(p):
 
 def p_condition(p):
     '''condition_list : KEY COLON STRING
+                      | KEY COLON INTEGER
                       | condition_list COMMA condition_list
                       | LCURLEY condition_list RCURLEY
                       | KEY COLON condition_list'''
     if len(p) == 4 and p[2] == ':' and isinstance(p[3], str):
         p[0] = {p[1]: p[3].replace('"', '')}
+    elif len(p) == 4 and p[2] == ':' and isinstance(p[3], int):
+        p[0] = {p[1]: p[3]}
     elif len(p) == 4 and p[2] == ':' and isinstance(p[3], dict):
         p[0] = {p[1]: p[3]}
     elif len(p) == 4 and p[2] == ',':
@@ -216,6 +219,7 @@ def p_condition(p):
 
 def p_constraint(p):
     '''constraint : keypath EQUALS STRING
+                  | keypath EQUALS INTEGER
                   | constraint OR constraint
                   | constraint AND constraint
                   | NOT constraint

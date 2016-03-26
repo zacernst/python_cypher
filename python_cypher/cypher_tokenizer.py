@@ -110,12 +110,14 @@ def t_KEY(t):
 
 def t_INTEGER(t):
     r'[0-9]+'
-    return int(t)
+    t.value = int(t.value)
+    return t
 
 
 def t_FLOAT(t):
     r'[+-]?[0-9]*\.[0-9]+'
     return float(t)
+
 
 def t_STRING(t):
     r'"[A-Za-z0-9]+"'
