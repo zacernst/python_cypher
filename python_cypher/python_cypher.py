@@ -72,6 +72,8 @@ class CypherParserBaseClass(object):
     def eval_constraint(self, constraint, assignment, graph_object):
         """This is the basis case for the recursive check
            on WHERE clauses."""
+        # This might be broken because _get_node might expect the actual
+        # node to be passed to it rather than the name of the node
         value = self._attribute_value_from_node_keypath(
             self._get_node(
                 graph_object,
@@ -115,50 +117,37 @@ class CypherParserBaseClass(object):
                 # The `node_document` is a temporary copy for comparisons
                 del node_document['class']
                 if sentinal and (len(desired_document) > 0 and
-                        node_document != desired_document):
+                                 node_document != desired_document):
                     sentinal = False
                 # Check all connecting edges from this node (literal)
-                edge_sentinal = True
-                for edge in literal.connecting_edges:
-                    # import pdb; pdb.set_trace()
-                    edge_sentinal = False
-                    source_designation = edge.node_1
-                    target_designation = edge.node_2
-                    edge_label = edge.edge_label
-                    source_node = assignment[source_designation]
-                    target_node = assignment[target_designation]
-                    for one_edge_id in self._edges_connecting_nodes(
-                            graph_object, source_node, target_node):
-                        one_edge = self._get_edge_from_id(
-                            graph_object, one_edge_id)
-                        if (edge_label is None or
-                                self._edge_class(one_edge) == edge_label):
-                            edge_sentinal = True
-                            # Add the edge to the returned values
-                            # and then yield the assignment back
+                if not not literal.connecting_edges:  # not not -> empty?
+                    edge_sentinal = True
+                    for edge in literal.connecting_edges:
+                        edge_sentinal = False
+                        source_designation = edge.node_1
+                        target_designation = edge.node_2
+                        edge_label = edge.edge_label
+                        source_node = assignment[source_designation]
+                        target_node = assignment[target_designation]
+                        for one_edge_id in self._edges_connecting_nodes(
+                                graph_object, source_node, target_node):
+                            one_edge = self._get_edge_from_id(
+                                graph_object, one_edge_id)
+                            if (edge_label is None or
+                                    self._edge_class(one_edge) == edge_label):
+                                edge_sentinal = True
+                                if getattr(edge, 'designation', None) is not None:
+                                    assignment[edge.designation] = one_edge_id
             # Check the WHERE clause
             # Note this isn't in the previous loop, because the WHERE clause
             # isn't restricted to a specific node
-            sentinal = sentinal and edge_sentinal
+                    sentinal = sentinal and edge_sentinal
             if sentinal and clause.where_clause is not None:
                 constraint = clause.where_clause.constraint
                 constraint_eval = self.eval_boolean(
                     constraint, assignment, graph_object)
                 sentinal = sentinal and constraint_eval
             return sentinal
-
-        # This is where the refactor has to continue -- we now have a
-        # FullQuery object that's just got a list of clauses. We need to
-        # step through it from left to right, passing to each clause
-        # the variable assignments that have passed the previous clause.
-        #
-        # For each assignment:
-        #     sentinal = True
-        #     for each clause in FullQuery (except RETURN):
-        #         send assignment, etc. to function determining type of check
-        #         if assignment doesn't pass, sentinal = False
-        #     if sentinal:
-        #         yield assignment (to RETURN clause function)
 
         # Two cases: Starts with CREATE; doesn't start with CREATE.
         # First doesn't require enumeration of the domain; second does.
@@ -169,6 +158,8 @@ class CypherParserBaseClass(object):
             self.head_create_query(graph_object, parsed_query)
             yield 'foo'  # Need to return the created nodes, possibly
         else:
+            # Importantly, we step through each assignment, and then for
+            # each assignment, we step through each "clause" (need better name)
             for assignment in self.yield_var_to_element(
                     parsed_query, graph_object):
                 satisfied = True
@@ -178,10 +169,28 @@ class CypherParserBaseClass(object):
                     if isinstance(clause, MatchWhere):  # MATCH... WHERE...
                         satisfied = satisfied and _test_match_where(
                             clause, assignment, graph_object)
-                        if satisfied:
-                            print 'YIELD: --->', assignment
                     elif isinstance(clause, ReturnVariables):
-                        pass
+                        # We've added any edges to the assignment dictionary
+                        # Now we need to step through the keypath lists that
+                        # are stored in the ReturnVariables object under the
+                        # attribute "variable_list"
+                        return_values = []
+                        for variable_path in clause.variable_list:
+                            # I expect this will choke on edges if we ask for
+                            # their properties to be returned
+                            if self._is_edge(graph_object, assignment[variable_path[0]]):
+                                _get_node_or_edge = self._get_edge
+                            elif self._is_node(graph_object, assignment[variable_path[0]]):
+                                _get_node_or_edge = self._get_node
+                            else:
+                                raise Exception("Neither a node nor an edge.")
+                            node_or_edge = _get_node_or_edge(
+                                graph_object, assignment[variable_path[0]])
+                            return_value = (
+                                self._attribute_value_from_node_keypath(
+                                    node_or_edge, variable_path[1:]))
+                            return_values.append(return_value)
+                        yield return_values
                     else:
                         import pdb; pdb.set_trace()
                         raise Exception("Unhandled case in query function.")
@@ -193,7 +202,6 @@ class CypherParserBaseClass(object):
         designation_to_edge = {}
         for create_clause in parsed_query.clause_list:
             if not isinstance(create_clause, CreateClause):
-
                 continue
             for literal in create_clause.literals.literal_list:
                 designation_to_node[literal.designation] = self._create_node(
@@ -255,6 +263,14 @@ class CypherParserBaseClass(object):
         raise NotImplementedError(
             "Method _attribute_value_from_node_keypath needs to be defined.")
 
+    def _is_edge(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _is_edge needs to be defined.")
+
+    def _is_node(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _is_node needs to be defined.")
+
 
 class CypherToNetworkx(CypherParserBaseClass):
     """Child class inheriting from ``CypherParserBaseClass`` to hook up
@@ -263,8 +279,26 @@ class CypherToNetworkx(CypherParserBaseClass):
     def _get_domain(self, obj):
         return obj.nodes()
 
+    def _is_node(self, graph_object, node_name):
+        return node_name in graph_object.node
+
+    def _is_edge(self, graph_object, edge_name):
+        for source_node_id, connections_dict in graph_object.edge.iteritems():
+            for _, edges_dict in connections_dict.iteritems():
+                for _, edge_dict in edges_dict.iteritems():
+                    if edge_dict.get('_id', None) == edge_name:
+                        return True
+        return False
+
     def _get_node(self, graph_object, node_name):
         return graph_object.node[node_name]
+
+    def _get_edge(self, graph_object, edge_name):
+        for source_node_id, connections_dict in graph_object.edge.iteritems():
+            for _, edges_dict in connections_dict.iteritems():
+                for _, edge_dict in edges_dict.iteritems():
+                    if edge_dict.get('_id', None) == edge_name:
+                        return edge_dict
 
     def _node_attribute_value(self, node, attribute_list):
         out = copy.deepcopy(node)
@@ -308,7 +342,7 @@ class CypherToNetworkx(CypherParserBaseClass):
     def _node_class(self, node, class_key='class'):
         return node.get(class_key, None)
 
-    def _edge_class(self, edge, class_key='class'):
+    def _edge_class(self, edge, class_key='edge_label'):
         try:
             out = edge.get(class_key, None)
         except AttributeError:
@@ -425,10 +459,12 @@ def main():
     #           '-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n')
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
     create_query = ('CREATE (n:SOMECLASS {foo: {goo: "bar"}})'
-                    '-[e:EDGECLASS]->(m:ANOTHERCLASS {qux: "foobar"}) RETURN n')
-    test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-[e:NONCLASS]->(m:ANOTHERCLASS) WHERE '
+            '-[e:EDGECLASS]->(m:ANOTHERCLASS {qux: "foobar"}) '
+                    'RETURN n')
+    test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-[e:EDGECLASS]->'
+                  '(m:ANOTHERCLASS) WHERE '
                   'NOT (n.foo.goo = "baz" OR n.foo = "bar") '
-                  'RETURN n.foo.goo')
+                  'RETURN n.foo.goo, m.qux, e')
     # atomic_facts = extract_atomic_facts(test_query)
     graph_object = nx.MultiDiGraph()
     my_parser = CypherToNetworkx()
@@ -436,7 +472,6 @@ def main():
         pass  # a generator, we need to loop over results to run.
     for i in my_parser.query(graph_object, test_query):
         print i
-    # import pdb; pdb.set_trace()
 
 
 if __name__ == '__main__':
