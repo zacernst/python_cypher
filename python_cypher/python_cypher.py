@@ -122,26 +122,26 @@ class CypherParserBaseClass(object):
                 # Check all connecting edges from this node (literal)
                 if not not literal.connecting_edges:  # not not -> empty?
                     edge_sentinal = True
-                for edge in literal.connecting_edges:
-                    edge_sentinal = False
-                    source_designation = edge.node_1
-                    target_designation = edge.node_2
-                    edge_label = edge.edge_label
-                    source_node = assignment[source_designation]
-                    target_node = assignment[target_designation]
-                    for one_edge_id in self._edges_connecting_nodes(
-                            graph_object, source_node, target_node):
-                        one_edge = self._get_edge_from_id(
-                            graph_object, one_edge_id)
-                        if (edge_label is None or
-                                self._edge_class(one_edge) == edge_label):
-                            edge_sentinal = True
-                            if getattr(edge, 'designation', None) is not None:
-                                assignment[edge.designation] = one_edge_id
+                    for edge in literal.connecting_edges:
+                        edge_sentinal = False
+                        source_designation = edge.node_1
+                        target_designation = edge.node_2
+                        edge_label = edge.edge_label
+                        source_node = assignment[source_designation]
+                        target_node = assignment[target_designation]
+                        for one_edge_id in self._edges_connecting_nodes(
+                                graph_object, source_node, target_node):
+                            one_edge = self._get_edge_from_id(
+                                graph_object, one_edge_id)
+                            if (edge_label is None or
+                                    self._edge_class(one_edge) == edge_label):
+                                edge_sentinal = True
+                                if getattr(edge, 'designation', None) is not None:
+                                    assignment[edge.designation] = one_edge_id
             # Check the WHERE clause
             # Note this isn't in the previous loop, because the WHERE clause
             # isn't restricted to a specific node
-            sentinal = sentinal and edge_sentinal
+                    sentinal = sentinal and edge_sentinal
             if sentinal and clause.where_clause is not None:
                 constraint = clause.where_clause.constraint
                 constraint_eval = self.eval_boolean(
