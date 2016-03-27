@@ -79,7 +79,7 @@ class CypherParserBaseClass(object):
                 graph_object,
                 assignment[constraint.keypath[0]]),
             constraint.keypath[1:])
-        return value == constraint.value
+        return constraint.function(value, constraint.value)
 
     def eval_boolean(self, clause, assignment, graph_object):
         """Recursive function to evaluate WHERE clauses. ``Or``
@@ -426,7 +426,6 @@ def extract_atomic_facts(query):
             _recurse(subquery.connecting_edges)
             _recurse.atomic_facts += subquery.connecting_edges
             # print 'here'
-            # import pdb; pdb.set_trace()
             if hasattr(subquery, 'attribute_conditions'):
                 _recurse.atomic_facts.append(
                     NodeHasDocument(
@@ -465,7 +464,7 @@ def main():
                     'RETURN n')
     test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-[e:EDGECLASS]->'
                   '(m:ANOTHERCLASS) WHERE '
-                  'm.bar != 11 '
+                  'm.bar > 1'
                   'RETURN n.foo.goo, m.qux, e')
     # atomic_facts = extract_atomic_facts(test_query)
     graph_object = nx.MultiDiGraph()
