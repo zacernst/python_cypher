@@ -190,7 +190,6 @@ class CypherParserBaseClass(object):
                                 raise Exception("Neither a node nor an edge.")
                             node_or_edge = _get_node_or_edge(
                                 graph_object, assignment[variable_path[0]])
-                            import pdb; pdb.set_trace()
                             return_value = (
                                 self._attribute_value_from_node_keypath(
                                     node_or_edge, variable_path[1:]))
