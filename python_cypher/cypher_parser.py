@@ -37,6 +37,10 @@ def constraint_function(function_string):
         return _less_than
     elif function_string == '>=':
         return _greater_or_equal
+    elif function_string == '<=':
+        return _less_or_equal
+    else:
+        raise Exception('Unhandled case in constraint_function.')
 
 
 class ParsingException(Exception):
@@ -220,9 +224,12 @@ def p_condition(p):
 def p_constraint(p):
     '''constraint : keypath EQUALS STRING
                   | keypath EQUALS INTEGER
+                  | keypath EQUALS keypath
                   | keypath NOT_EQUAL INTEGER
                   | keypath GREATERTHAN INTEGER
                   | keypath GREATERTHAN_OR_EQUAL INTEGER
+                  | keypath LESSTHAN INTEGER
+                  | keypath LESSTHAN_OR_EQUAL INTEGER
                   | constraint OR constraint
                   | constraint AND constraint
                   | NOT constraint
@@ -233,7 +240,11 @@ def p_constraint(p):
         p[0] = Constraint(p[1], p[3], '>')
     elif p[2] == '!=':
         p[0] = Not(Constraint(p[1], p[3], '='))
-    elif p[2] == '>=':
+    elif p[2] == '<':
+        p[0] = Constraint(p[1], p[3], '<')
+    elif p[2] == '<':
+        p[0] = Constraint(p[1], p[3], '<=')
+    elif p[2] == '<=':
         p[0] = Or(Constraint(p[1], p[3], '>'), Constraint(p[1], p[3], '='))
     elif p[2] == 'OR':
         p[0] = Or(p[1], p[3])

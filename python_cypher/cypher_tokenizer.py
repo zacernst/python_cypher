@@ -9,6 +9,7 @@ tokens = (
     'DASH',
     'GREATERTHAN',
     'LESSTHAN',
+    'LESSTHAN_OR_EQUAL',
     'GREATERTHAN_OR_EQUAL',
     'EQUALS',
     'NOT_EQUAL',
@@ -42,6 +43,7 @@ t_DASH = r'-'
 t_GREATERTHAN = r'>'
 t_GREATERTHAN_OR_EQUAL = r'>='
 t_LESSTHAN = r'<'
+t_LESSTHAN_OR_EQUAL = r'<='
 t_EQUALS = r'='
 t_NOT_EQUAL = r'!='
 t_LPAREN = r'\('

@@ -13,7 +13,7 @@ import time
 from cypher_tokenizer import *
 from cypher_parser import *
 
-PRINT_TOKENS = False
+PRINT_TOKENS = True
 PRINT_MATCHING_ASSIGNMENTS = False
 
 
@@ -178,6 +178,8 @@ class CypherParserBaseClass(object):
                         for variable_path in clause.variable_list:
                             # I expect this will choke on edges if we ask for
                             # their properties to be returned
+                            if not isinstance(variable_path, list):
+                                variable_path = [variable_path]
                             if self._is_edge(
                                     graph_object, assignment[variable_path[0]]):
                                 _get_node_or_edge = self._get_edge
@@ -261,6 +263,10 @@ class CypherParserBaseClass(object):
         raise NotImplementedError(
             "Method _get_edge_from_id needs to be defined in child class.")
 
+    def _get_edge(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Method _get_edge needs to be defined in child class.")
+
     def _attribute_value_from_node_keypath(self, *args, **kwargs):
         raise NotImplementedError(
             "Method _attribute_value_from_node_keypath needs to be defined.")
@@ -314,6 +320,9 @@ class CypherToNetworkx(CypherParserBaseClass):
         return out
 
     def _attribute_value_from_node_keypath(self, node, keypath):
+        # We will try passing everything through this function
+        if not isinstance(keypath, list) or len(keypath) == 0:
+            return node
         value = node
         for key in keypath:
             try:
@@ -464,7 +473,7 @@ def main():
                     'RETURN n')
     test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-[e:EDGECLASS]->'
                   '(m:ANOTHERCLASS) WHERE '
-                  'm.bar > 1'
+                  'm.bar = 10 '
                   'RETURN n.foo.goo, m.qux, e')
     # atomic_facts = extract_atomic_facts(test_query)
     graph_object = nx.MultiDiGraph()
