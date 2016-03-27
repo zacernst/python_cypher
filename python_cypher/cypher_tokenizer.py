@@ -9,7 +9,9 @@ tokens = (
     'DASH',
     'GREATERTHAN',
     'LESSTHAN',
+    'GREATERTHAN_OR_EQUAL',
     'EQUALS',
+    'NOT_EQUAL',
     'LPAREN',
     'RPAREN',
     'COLON',
@@ -38,8 +40,10 @@ t_LBRACKET = r'\['
 t_RBRACKET = r'\]'
 t_DASH = r'-'
 t_GREATERTHAN = r'>'
+t_GREATERTHAN_OR_EQUAL = r'>='
 t_LESSTHAN = r'<'
 t_EQUALS = r'='
+t_NOT_EQUAL = r'!='
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
 t_COLON = r':'

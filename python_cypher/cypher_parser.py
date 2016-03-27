@@ -220,6 +220,7 @@ def p_condition(p):
 def p_constraint(p):
     '''constraint : keypath EQUALS STRING
                   | keypath EQUALS INTEGER
+                  | keypath NOT_EQUAL INTEGER
                   | constraint OR constraint
                   | constraint AND constraint
                   | NOT constraint
@@ -228,6 +229,8 @@ def p_constraint(p):
         p[0] = Constraint(p[1], p[3], '=')
     elif p[2] == '>':
         p[0] = Constraint(p[1], p[3], '>')
+    elif p[2] == '!=':
+        p[0] = Not(Constraint(p[1], p[3], '='))
     elif p[2] == 'OR':
         p[0] = Or(p[1], p[3])
     elif p[2] == 'AND':

@@ -465,7 +465,7 @@ def main():
                     'RETURN n')
     test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-[e:EDGECLASS]->'
                   '(m:ANOTHERCLASS) WHERE '
-                  'NOT (n.foo.goo = "baz" OR n.foo = "bar") '
+                  'm.bar != 11 '
                   'RETURN n.foo.goo, m.qux, e')
     # atomic_facts = extract_atomic_facts(test_query)
     graph_object = nx.MultiDiGraph()
@@ -478,4 +478,4 @@ def main():
 
 if __name__ == '__main__':
     # This main method is just for testing
-    out = main()
+    main()
