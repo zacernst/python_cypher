@@ -138,10 +138,10 @@ class CypherParserBaseClass(object):
                                 edge_sentinal = True
                                 if getattr(edge, 'designation', None) is not None:
                                     assignment[edge.designation] = one_edge_id
-            # Check the WHERE clause
+                    sentinal = sentinal and edge_sentinal
+            # Check the WHERE claused
             # Note this isn't in the previous loop, because the WHERE clause
             # isn't restricted to a specific node
-                    sentinal = sentinal and edge_sentinal
             if sentinal and clause.where_clause is not None:
                 constraint = clause.where_clause.constraint
                 constraint_eval = self.eval_boolean(
@@ -178,9 +178,11 @@ class CypherParserBaseClass(object):
                         for variable_path in clause.variable_list:
                             # I expect this will choke on edges if we ask for
                             # their properties to be returned
-                            if self._is_edge(graph_object, assignment[variable_path[0]]):
+                            if self._is_edge(
+                                    graph_object, assignment[variable_path[0]]):
                                 _get_node_or_edge = self._get_edge
-                            elif self._is_node(graph_object, assignment[variable_path[0]]):
+                            elif self._is_node(
+                                    graph_object, assignment[variable_path[0]]):
                                 _get_node_or_edge = self._get_node
                             else:
                                 raise Exception("Neither a node nor an edge.")
@@ -459,11 +461,11 @@ def main():
     #           '-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n')
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
     create_query = ('CREATE (n:SOMECLASS {foo: {goo: "bar"}})'
-            '-[e:EDGECLASS]->(m:ANOTHERCLASS {qux: "foobar"}) '
+            '-[e:EDGECLASS]->(m:ANOTHERCLASS {qux: "foobar", bar: 10}) '
                     'RETURN n')
     test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-[e:EDGECLASS]->'
                   '(m:ANOTHERCLASS) WHERE '
-                  'NOT (n.foo.goo = "baz" OR n.foo = "bar") '
+                  'm.bar != 11 '
                   'RETURN n.foo.goo, m.qux, e')
     # atomic_facts = extract_atomic_facts(test_query)
     graph_object = nx.MultiDiGraph()
@@ -476,4 +478,4 @@ def main():
 
 if __name__ == '__main__':
     # This main method is just for testing
-    out = main()
+    main()
