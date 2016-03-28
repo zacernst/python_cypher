@@ -141,9 +141,9 @@ class MatchWhereReturnQuery(object):
 class Constraint(object):
     '''Class representing a constraint for use in a MATCH query. For
        example, WHERE x.foo = "bar"'''
-    def __init__(self, keypath, value, function_string):
-        self.keypath = keypath
-        self.value = value
+    def __init__(self, arg1, arg2, function_string):
+        self.arg1 = arg1
+        self.arg2 = arg2
         self.function = constraint_function(function_string)
 
 

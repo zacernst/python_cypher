@@ -69,17 +69,33 @@ class CypherParserBaseClass(object):
             tok = self.tokenizer.token()
         return self.parser.parse(query)
 
+    def resolve_constraint_arguments(
+            self, constraint, assignment, graph_object):
+        if isinstance(constraint.arg1, list):
+            arg1_resolved = self._attribute_value_from_node_keypath(
+                self._get_node(
+                    graph_object,
+                    assignment[constraint.arg1[0]]),
+                constraint.arg1[1:])
+        else:
+            arg1_resolved = constraint.arg1
+        if isinstance(constraint.arg2, list):
+            arg2_resolved = self._attribute_value_from_node_keypath(
+                self._get_node(
+                    graph_object,
+                    assignment[constraint.arg2[0]]),
+                constraint.arg2[1:])
+        else:
+            arg2_resolved = constraint.arg2
+        return arg1_resolved, arg2_resolved
+
     def eval_constraint(self, constraint, assignment, graph_object):
         """This is the basis case for the recursive check
            on WHERE clauses."""
-        # This might be broken because _get_node might expect the actual
-        # node to be passed to it rather than the name of the node
-        value = self._attribute_value_from_node_keypath(
-            self._get_node(
-                graph_object,
-                assignment[constraint.keypath[0]]),
-            constraint.keypath[1:])
-        return constraint.function(value, constraint.value)
+        arg1_resolved, arg2_resolved = self.resolve_constraint_arguments(
+            constraint, assignment, graph_object)
+        import pdb; pdb.set_trace()
+        return constraint.function(arg1_resolved, arg2_resolved)
 
     def eval_boolean(self, clause, assignment, graph_object):
         """Recursive function to evaluate WHERE clauses. ``Or``
@@ -468,12 +484,12 @@ def main():
     # create = ('CREATE (n:SOMECLASS {foo: "bar", bar: {qux: "baz"}})'
     #           '-[e:EDGECLASS]->(m:ANOTHERCLASS) RETURN n')
     # create = 'CREATE (n:SOMECLASS {foo: "bar", qux: "baz"}) RETURN n'
-    create_query = ('CREATE (n:SOMECLASS {foo: {goo: "bar"}})'
+    create_query = ('CREATE (n:SOMECLASS {foo: 10})'
             '-[e:EDGECLASS]->(m:ANOTHERCLASS {qux: "foobar", bar: 10}) '
                     'RETURN n')
-    test_query = ('MATCH (n:SOMECLASS {foo: {goo: "bar"}})-[e:EDGECLASS]->'
+    test_query = ('MATCH (n:SOMECLASS)-[e:EDGECLASS]->'
                   '(m:ANOTHERCLASS) WHERE '
-                  'm.bar = 10 '
+                  'm.bar = n.foo '
                   'RETURN n.foo.goo, m.qux, e')
     # atomic_facts = extract_atomic_facts(test_query)
     graph_object = nx.MultiDiGraph()
