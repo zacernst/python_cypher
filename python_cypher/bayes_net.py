@@ -27,7 +27,7 @@ class BayesNode(object):
     Class for nodes in the Bayes network
     """
     def __init__(self, label=None, note=None, prior_probability=None,
-                 clamped=False):
+                 clamped=False, labels_to_nodes_dict=None):
         self.children = []
         self.parents = []
         self.hash_value = hashlib.md5(str(id(self))).hexdigest()
@@ -37,6 +37,16 @@ class BayesNode(object):
         self.assignment = None
         self.activation_state = None
         self.clamped = clamped
+        self.labels_to_nodes_dict = labels_to_nodes_dict or {}
+
+    @property
+    def node_dict(self):
+        return self.all_connected_nodes_dict()
+
+    def clamp(self, activation_state, label=None):
+        label = label or self.label
+        self.clamped = True
+        self.activation_state = activation_state
 
     def set_prior_probability(self, prior_probability):
         self.prior_probability = prior_probability
@@ -44,6 +54,9 @@ class BayesNode(object):
     def connect(self, target):
         self.children.append(target)
         target.parents.append(self)
+        for node in self.all_connected_nodes():
+            setattr(node, self.label, self)
+            setattr(node, target.label, target)
 
     def disconnect(self, target):
         self.children = [i for i in self.children if i is not target]
@@ -70,6 +83,9 @@ class BayesNode(object):
 
     def all_connected_node_labels(self):
         return set(node.label for node in self.all_connected_nodes())
+
+    def all_connected_nodes_dict(self):
+        return {node.label: node for node in self.all_connected_nodes()}
 
     def root_nodes(self):
         root_nodes = [i for i in self.all_connected_nodes()
@@ -293,7 +309,11 @@ if __name__ == '__main__':
     root.set_all_dependencies()
     # root.prior_probability = .5
     root.seed_probabilities(test_data)
+
+    
     print root.monte_carlo(
         iterations=10000,
         assumptions={'guard_1': False},
         end_conditions={'dead': True})
+
+
